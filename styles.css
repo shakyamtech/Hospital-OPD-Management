@@ -1289,13 +1289,14 @@ body {
     line-height: 1.4;
     color: var(--text-main);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.5rem;
 }
 
 .alert-item .material-symbols-outlined {
     font-size: 1.15rem;
     display: inline-flex;
+    margin-top: 2px;
 }
 
 .alert-item.new-patients .material-symbols-outlined {
@@ -1307,5 +1308,36 @@ body {
 }
 
 .alert-item strong {
+    font-weight: 600;
+}
+
+.alert-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.alert-sublist {
+    margin-left: 1.25rem;
+    margin-top: 0.25rem;
+    padding-left: 0;
+    list-style-type: disc;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.alert-sublist li {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.alert-sublist li strong {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.followup-time-badge {
+    color: var(--primary);
     font-weight: 600;
 }

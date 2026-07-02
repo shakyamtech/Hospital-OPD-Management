@@ -906,11 +906,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (newPatients.length > 0) {
-            const patientNames = newPatients.map(p => escapeHtml(p.personal?.name || 'Unnamed')).join(', ');
+            const listItems = newPatients.map(p => {
+                const name = escapeHtml(p.personal?.name || 'Unnamed');
+                const age = p.personal?.age ? `, Age ${p.personal.age}` : '';
+                const contact = p.personal?.contact ? ` (${escapeHtml(p.personal.contact)})` : '';
+                return `<li><strong>${name}</strong>${age}${contact}</li>`;
+            }).join('');
+
             detailsHtml += `
                 <div class="alert-item new-patients">
                     <span class="material-symbols-outlined">person_alert</span>
-                    <span><strong>${newPatients.length} New Patient(s)</strong> waiting for clinical prescription: <span style="color: var(--primary); font-weight: 500;">${patientNames}</span></span>
+                    <div class="alert-item-content">
+                        <strong>${newPatients.length} New Patient(s) waiting for checkup:</strong>
+                        <ul class="alert-sublist">${listItems}</ul>
+                    </div>
                 </div>
             `;
         }
@@ -921,17 +930,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 return new Date(a.appointment.followupDate) - new Date(b.appointment.followupDate);
             });
             
-            const followupDetails = sortedFollowups.map(p => {
+            const listItems = sortedFollowups.map(p => {
                 const name = escapeHtml(p.personal?.name || 'Unnamed');
                 const date = escapeHtml(p.appointment.followupDate);
                 const time = p.appointment.followupTime ? ` at ${escapeHtml(p.appointment.followupTime)}` : '';
-                return `${name} (${date}${time})`;
-            }).join(', ');
+                return `<li><strong>${name}</strong> - Scheduled on <span class="followup-time-badge">${date}${time}</span></li>`;
+            }).join('');
             
             detailsHtml += `
                 <div class="alert-item followup-patients">
                     <span class="material-symbols-outlined">calendar_clock</span>
-                    <span><strong>${followupPatients.length} Upcoming Follow-up(s)</strong> scheduled: <span style="color: var(--success); font-weight: 500;">${followupDetails}</span></span>
+                    <div class="alert-item-content">
+                        <strong>${followupPatients.length} Upcoming Follow-up(s) scheduled:</strong>
+                        <ul class="alert-sublist">${listItems}</ul>
+                    </div>
                 </div>
             `;
         }
