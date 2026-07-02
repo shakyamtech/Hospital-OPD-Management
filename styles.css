@@ -1225,3 +1225,87 @@ body {
         padding-top: 8px;
     }
 }
+
+/* --- Doctor Alerts Banner --- */
+.doctor-alerts-banner {
+    background: rgba(2, 132, 199, 0.08); /* subtle theme primary tint */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(2, 132, 199, 0.2);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    animation: slideInDown 0.4s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.doctor-alerts-banner .alert-icon {
+    font-size: 1.6rem;
+    color: var(--primary);
+    background: rgba(2, 132, 199, 0.12);
+    padding: 0.4rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doctor-alerts-banner .alert-content {
+    flex: 1;
+}
+
+.doctor-alerts-banner .alert-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.doctor-alerts-banner .alert-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.alert-item {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-item .material-symbols-outlined {
+    font-size: 1.15rem;
+    display: inline-flex;
+}
+
+.alert-item.new-patients .material-symbols-outlined {
+    color: #d97706; /* warm amber */
+}
+
+.alert-item.followup-patients .material-symbols-outlined {
+    color: #10b981; /* fresh emerald */
+}
+
+.alert-item strong {
+    font-weight: 600;
+}

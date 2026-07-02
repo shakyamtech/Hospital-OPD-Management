@@ -305,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 patientsCache = data.patients || [];
                 populateBlockFilter();
                 applyFilters();
+                updateDoctorAlerts();
             } else {
                 directoryTbody.innerHTML = `
                     <tr>
@@ -873,6 +874,70 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             switchTab('register');
         }
+    }
+
+    function updateDoctorAlerts() {
+        const role = localStorage.getItem('opd_role');
+        const doctorId = localStorage.getItem('opd_doctor_id');
+        const alertsBanner = document.getElementById('doctor-alerts');
+        const alertsDetails = document.getElementById('doctor-alerts-details');
+        
+        if (!alertsBanner || !alertsDetails) return;
+        
+        if (role !== 'doctor' || !doctorId) {
+            alertsBanner.style.display = 'none';
+            return;
+        }
+        
+        // Filter patients for this doctor
+        const doctorPatients = patientsCache.filter(p => p.appointment?.doctor === doctorId);
+        
+        // 1. Identify New Patients (no prescribed medicines yet)
+        const newPatients = doctorPatients.filter(p => !p.medical?.medicines || p.medical.medicines.trim() === '');
+        
+        // 2. Identify Upcoming Follow-up Patients
+        const followupPatients = doctorPatients.filter(p => p.appointment?.followupDate);
+        
+        let detailsHtml = '';
+        
+        if (newPatients.length === 0 && followupPatients.length === 0) {
+            alertsBanner.style.display = 'none';
+            return;
+        }
+        
+        if (newPatients.length > 0) {
+            const patientNames = newPatients.map(p => escapeHtml(p.personal?.name || 'Unnamed')).join(', ');
+            detailsHtml += `
+                <div class="alert-item new-patients">
+                    <span class="material-symbols-outlined">person_alert</span>
+                    <span><strong>${newPatients.length} New Patient(s)</strong> waiting for clinical prescription: <span style="color: var(--primary); font-weight: 500;">${patientNames}</span></span>
+                </div>
+            `;
+        }
+        
+        if (followupPatients.length > 0) {
+            // Sort follow-ups by date ascending
+            const sortedFollowups = [...followupPatients].sort((a, b) => {
+                return new Date(a.appointment.followupDate) - new Date(b.appointment.followupDate);
+            });
+            
+            const followupDetails = sortedFollowups.map(p => {
+                const name = escapeHtml(p.personal?.name || 'Unnamed');
+                const date = escapeHtml(p.appointment.followupDate);
+                const time = p.appointment.followupTime ? ` at ${escapeHtml(p.appointment.followupTime)}` : '';
+                return `${name} (${date}${time})`;
+            }).join(', ');
+            
+            detailsHtml += `
+                <div class="alert-item followup-patients">
+                    <span class="material-symbols-outlined">calendar_clock</span>
+                    <span><strong>${followupPatients.length} Upcoming Follow-up(s)</strong> scheduled: <span style="color: var(--success); font-weight: 500;">${followupDetails}</span></span>
+                </div>
+            `;
+        }
+        
+        alertsDetails.innerHTML = detailsHtml;
+        alertsBanner.style.display = 'flex';
     }
 
     function showToast(message) {
