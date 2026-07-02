@@ -1,0 +1,20 @@
+# Secrets & Keys
+backend/serviceAccountKey.json
+*.json.key
+secrets.txt
+
+# Python Cache
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE and System Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+.gemini/
+.agents/
