@@ -1036,29 +1036,35 @@ body {
     background-color: #059669 !important;
 }
 
+/* --- Hide Print Container on Screen --- */
+#print-section {
+    display: none;
+}
+
 /* --- Print Styles --- */
 @media print {
-    /* Hide everything on screen */
-    body * {
-        visibility: hidden;
+    /* Hide screen UI for print */
+    #app, .toast, .modal-overlay, #confirm-dialog {
+        display: none !important;
     }
     
-    /* Make ONLY print-section visible and stretch to fill page */
-    #print-section, #print-section * {
-        visibility: visible;
-    }
-    
+    /* Make print-section block visible and stretch to fill page */
     #print-section {
+        display: block !important;
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
         color: #000;
-        background: #white;
+        background: #fff;
         font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
         font-size: 11pt;
         line-height: 1.4;
         padding: 0;
+    }
+
+    #print-section * {
+        visibility: visible !important;
     }
     
     .print-header {
