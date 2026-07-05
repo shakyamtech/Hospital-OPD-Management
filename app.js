@@ -61,12 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialize ---
     const isAuthenticated = localStorage.getItem('opd_auth') === 'true';
-    fetchDoctors();
-    if (isAuthenticated) {
-        showDashboard();
-    } else {
-        showLogin();
-    }
+    fetchDoctors().then(() => {
+        if (isAuthenticated) {
+            showDashboard();
+        } else {
+            showLogin();
+        }
+    });
 
     // Toggle Password Visibility
     const togglePasswordBtn = document.getElementById('toggle-password');
