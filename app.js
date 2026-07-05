@@ -715,7 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const docId = localStorage.getItem('opd_doctor_id') || '';
         
         const adminFields = [
-            'patient-name', 'patient-age', 'patient-blood', 'patient-contact', 'patient-address',
+            'patient-name', 'patient-age', 'patient-contact', 'patient-address',
             'guardian-name', 'guardian-contact',
             'block-ward', 'charges', 'doctor'
         ];
@@ -738,6 +738,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (el) el.disabled = false;
             });
         }
+
+        // Handle visibility of doctor-only sections
+        const docOnlySections = [
+            document.getElementById('medical-details-section'),
+            document.getElementById('followup-container'),
+            document.getElementById('blood-group-container')
+        ];
+
+        const showDocSections = (role === 'doctor' || role === 'admin');
+        
+        docOnlySections.forEach(section => {
+            if (section) {
+                section.style.display = showDocSections ? '' : 'none';
+            }
+        });
     }
 
     function printPatientInvoice(patient) {
