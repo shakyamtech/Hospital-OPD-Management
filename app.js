@@ -1471,6 +1471,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 showToast('Pharmacy bill saved and marked as paid!');
+                if (typeof printPharmacyInvoice === 'function') {
+                    printPharmacyInvoice(patient, pharmacyBill);
+                }
                 document.getElementById('pharmacy-modal').classList.remove('active');
                 loadPatients(); 
                 setTimeout(loadPharmacy, 500);
@@ -1512,6 +1515,116 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // --- Pharmacy Printing ---
+    window.printPharmacyInvoice = function(patient, pharmacyBill) {
+        if (!patient || !pharmacyBill) return;
+        
+        const printSection = document.getElementById('print-section');
+        if (!printSection) return;
+        
+        const p = patient.personal || {};
+        const a = patient.appointment || {};
+        
+        const today = new Date().toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+        
+        let totalAmount = 0;
+        const rows = pharmacyBill.map((med, index) => {
+            const rowTotal = med.qty * med.rate;
+            totalAmount += rowTotal;
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(med.name)}</td>
+                    <td>${med.qty}</td>
+                    <td style="text-align: right;">Rs ${parseFloat(med.rate).toFixed(2)}</td>
+                    <td style="text-align: right;">Rs ${parseFloat(rowTotal).toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+        
+        printSection.innerHTML = `
+            <div class="print-header">
+                <div class="print-logo-section">
+                    <span class="material-symbols-outlined print-logo-icon">local_hospital</span>
+                    <div>
+                        <h2 class="print-hospital-name">OPD CONNECT HOSPITAL</h2>
+                        <p class="print-hospital-sub">123 Healthway Avenue, Medical City | Phone: +977-1-4455667</p>
+                    </div>
+                </div>
+                <div class="print-title">
+                    <h1>PHARMACY INVOICE</h1>
+                    <p>Cash Receipt</p>
+                </div>
+            </div>
+            
+            <div class="print-metadata-grid">
+                <div class="print-meta-block">
+                    <h3>Patient Details</h3>
+                    <div class="print-meta-row">
+                        <span class="print-meta-label">Patient Name:</span>
+                        <span>${escapeHtml(p.name || '-')}</span>
+                    </div>
+                    <div class="print-meta-row">
+                        <span class="print-meta-label">Age / Contact:</span>
+                        <span>${p.age || '-'} / ${escapeHtml(p.contact || '-')}</span>
+                    </div>
+                </div>
+                
+                <div class="print-meta-block">
+                    <h3>Invoice Details</h3>
+                    <div class="print-meta-row">
+                        <span class="print-meta-label">Patient ID:</span>
+                        <span><strong>${escapeHtml(patient.id || '-')}</strong></span>
+                    </div>
+                    <div class="print-meta-row">
+                        <span class="print-meta-label">Date Generated:</span>
+                        <span>${today}</span>
+                    </div>
+                    <div class="print-meta-row">
+                        <span class="print-meta-label">Prescribing Doctor:</span>
+                        <span>${escapeHtml(formatDoctor(a.doctor))}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">S.N.</th>
+                        <th style="width: 45%;">Medicine Name</th>
+                        <th style="width: 15%;">Qty</th>
+                        <th style="width: 15%; text-align: right;">Rate</th>
+                        <th style="width: 15%; text-align: right;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                    <tr>
+                        <td colspan="4" style="text-align: right; font-weight: bold;">Grand Total:</td>
+                        <td style="text-align: right; font-weight: bold; font-size: 1.1em;">Rs ${parseFloat(totalAmount).toFixed(2)}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="print-footer">
+                <div class="print-signature-space">
+                    <div class="print-signature-line">Authorized Signatory</div>
+                </div>
+                <div class="print-signature-space">
+                    <div class="print-signature-line">Dispensing Pharmacist</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #7f8c8d;">
+                This slip is generated electronically. Powered by OPD Connect.
+            </div>
+        `;
+        
+        window.print();
+    };
 
 });
 
