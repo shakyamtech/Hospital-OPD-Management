@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Constants ---
-    const API_BASE = 'http://127.0.0.1:8000/api';
+    // --- Configuration ---
+    const API_BASE = 'https://hospital-opd-management.onrender.com/api';
 
     // --- DOM Elements ---
     const loginView = document.getElementById('login-view');
