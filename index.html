@@ -4,9 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPD Connect | Hospital Management</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="styles.css">
+    <style>
+        #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; background: rgba(0,0,0,0.8); color: lime; font-family: monospace; z-index: 9999; overflow-y: auto; padding: 10px; display: none; }
+    </style>
+    <script>
+        window.addEventListener('error', function(e) {
+            let debug = document.getElementById('debug-console');
+            if(!debug) {
+                debug = document.createElement('div');
+                debug.id = 'debug-console';
+                document.body.appendChild(debug);
+                debug.style.display = 'block';
+            }
+            debug.innerHTML += e.message + ' at ' + e.filename + ':' + e.lineno + '<br>';
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            let debug = document.getElementById('debug-console');
+            if(!debug) {
+                debug = document.createElement('div');
+                debug.id = 'debug-console';
+                document.body.appendChild(debug);
+                debug.style.display = 'block';
+            }
+            debug.innerHTML += 'Promise rejection: ' + e.reason + '<br>';
+        });
+    </script>
 </head>
 <body>
     <div id="app">
@@ -19,19 +45,20 @@
                     <p>Secure Access for Healthcare Professionals</p>
                 </div>
                 <div class="login-tabs">
-                    <button type="button" class="login-tab active" id="login-tab-admin" data-role="admin">Admin / Staff</button>
+                    <button type="button" class="login-tab" id="login-tab-admin" data-role="admin" style="display: none;">Admin</button>
+                    <button type="button" class="login-tab active" id="login-tab-staff" data-role="staff">Staff</button>
                     <button type="button" class="login-tab" id="login-tab-doctor" data-role="doctor">Doctor</button>
+                    <button type="button" class="login-tab" id="login-tab-cashier" data-role="cashier">Cashier</button>
+                    <button type="button" class="login-tab" id="login-tab-pharmacy" data-role="pharmacy">Pharmacy</button>
                 </div>
                 <form id="login-form">
-                    <input type="hidden" id="login-role" value="admin">
+                    <input type="hidden" id="login-role" value="staff">
                     <div class="input-group" id="login-doctor-group" style="display: none;">
                         <label for="login-doctor">Select Doctor Profile</label>
                         <div class="input-wrapper">
                             <span class="material-symbols-outlined">medical_information</span>
                             <select id="login-doctor">
-                                <option value="dr-smith">Dr. Smith (Cardiology)</option>
-                                <option value="dr-jane">Dr. Jane (General)</option>
-                                <option value="dr-patel">Dr. Patel (Orthopedics)</option>
+                                <option value="" disabled selected>Select Doctor Profile</option>
                             </select>
                         </div>
                     </div>
@@ -89,6 +116,18 @@
                         <span class="material-symbols-outlined">group</span>
                         Patient Directory
                     </button>
+                    <button class="tab-btn" id="tab-billing">
+                        <span class="material-symbols-outlined">payments</span>
+                        Billing
+                    </button>
+                    <button class="tab-btn" id="tab-pharmacy" style="display: none;">
+                        <span class="material-symbols-outlined">local_pharmacy</span>
+                        Pharmacy
+                    </button>
+                    <button class="tab-btn" id="tab-settings" style="display: none;">
+                        <span class="material-symbols-outlined">settings</span>
+                        Settings
+                    </button>
                 </div>
 
                 <!-- Registration Section -->
@@ -102,6 +141,7 @@
 
                     <form id="patient-form" class="glass-panel">
                         <input type="hidden" id="edit-patient-id">
+                        <input type="hidden" id="payment-status" value="pending">
                         <div class="form-grid">
                         <!-- Personal Details -->
                         <div class="form-section">
@@ -112,10 +152,10 @@
                             </div>
                             <div class="form-row">
                                 <div class="input-group">
-                                    <label for="patient-age">Age</label>
+                                    <label for="patient-age">Age (Years)</label>
                                     <input type="number" id="patient-age" required>
                                 </div>
-                                <div class="input-group">
+                                <div class="input-group" id="blood-group-container">
                                     <label for="patient-blood">Blood Group</label>
                                     <select id="patient-blood">
                                         <option value="" disabled selected>Select</option>
@@ -154,7 +194,7 @@
                         </div>
 
                         <!-- Medical Details -->
-                        <div class="form-section full-width">
+                        <div class="form-section full-width" id="medical-details-section">
                             <h3 class="section-title"><span class="material-symbols-outlined">medical_information</span> Medical Details</h3>
                             <div class="form-row-3">
                                 <div class="input-group">
@@ -170,6 +210,22 @@
                                     <textarea id="medicines" rows="3" placeholder="Enter prescription details..."></textarea>
                                 </div>
                             </div>
+                            <!-- Selectable Tests & Investigations -->
+                            <div class="input-group" style="margin-top: 1rem;">
+                                <label style="font-weight: 600; color: var(--secondary);">Prescribe Tests & Investigations (Click to add)</label>
+                                <div class="test-chips-container" id="test-chips-container">
+                                    <button type="button" class="test-chip-btn" data-test="X-Ray" data-charge="800">
+                                        <span class="material-symbols-outlined">add</span> X-Ray (Rs 800)
+                                    </button>
+                                    <button type="button" class="test-chip-btn" data-test="Video X-Ray" data-charge="1500">
+                                        <span class="material-symbols-outlined">add</span> Video X-Ray (Rs 1500)
+                                    </button>
+                                    <button type="button" class="test-chip-btn" data-test="Blood Test" data-charge="600">
+                                        <span class="material-symbols-outlined">add</span> Blood Test (Rs 600)
+                                    </button>
+                                </div>
+                                <input type="hidden" id="patient-tests" value="">
+                            </div>
                         </div>
 
                         <!-- Appointment Details -->
@@ -179,9 +235,7 @@
                                 <label for="doctor">Appointed Doctor</label>
                                 <select id="doctor" required>
                                     <option value="" disabled selected>Select Doctor</option>
-                                    <option value="dr-smith">Dr. Smith (Cardiology)</option>
-                                    <option value="dr-jane">Dr. Jane (General)</option>
-                                    <option value="dr-patel">Dr. Patel (Orthopedics)</option>
+                                    <!-- Populated by JS -->
                                 </select>
                             </div>
                             <div class="form-row">
@@ -198,13 +252,13 @@
                                 <label for="charges">Consultation Charges (Rs)</label>
                                 <input type="number" id="charges" required>
                             </div>
-                            <div class="form-row">
+                            <div class="form-row" id="followup-container">
                                 <div class="input-group">
-                                    <label for="followup-date">Follow-up Date</label>
+                                    <label for="followup-date">Follow-up Date <span style="color: #64748b; font-weight: normal; font-size: 0.85em;">(For Doctor Use Only)</span></label>
                                     <input type="date" id="followup-date">
                                 </div>
                                 <div class="input-group">
-                                    <label for="followup-time">Follow-up Time</label>
+                                    <label for="followup-time">Follow-up Time <span style="color: #64748b; font-weight: normal; font-size: 0.85em;">(For Doctor Use Only)</span></label>
                                     <input type="time" id="followup-time">
                                 </div>
                             </div>
@@ -226,6 +280,46 @@
                             <p>View and manage registered patients.</p>
                         </div>
                     </header>
+
+                    <!-- Admin Stats Dashboard -->
+                    <div class="stats-grid" id="admin-stats-dashboard" style="display: none;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                                <span class="material-symbols-outlined">group</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Patients</h3>
+                                <p id="stat-total-patients">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                <span class="material-symbols-outlined">payments</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Collected Revenue</h3>
+                                <p id="stat-collected-revenue">Rs 0.00</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                <span class="material-symbols-outlined">pending_actions</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Pending Revenue</h3>
+                                <p id="stat-pending-revenue">Rs 0.00</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                                <span class="material-symbols-outlined">local_pharmacy</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Pharmacy Revenue</h3>
+                                <p id="stat-pharmacy-revenue">Rs 0.00</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Doctor Notification Banner -->
                     <div id="doctor-alerts" class="doctor-alerts-banner" style="display: none;">
@@ -261,9 +355,7 @@
                                 <span class="material-symbols-outlined select-icon">medical_information</span>
                                 <select id="filter-doctor" class="filter-select">
                                     <option value="">All Doctors</option>
-                                    <option value="dr-smith">Dr. Smith (Cardiology)</option>
-                                    <option value="dr-jane">Dr. Jane (General)</option>
-                                    <option value="dr-patel">Dr. Patel (Orthopedics)</option>
+                                    <!-- Populated by JS -->
                                 </select>
                             </div>
                             <div class="filter-select-wrapper">
@@ -296,6 +388,123 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Billing Section -->
+                <div id="section-billing" class="tab-section">
+                    <header class="page-header">
+                        <div class="header-titles">
+                            <h1>Billing & Payments</h1>
+                            <p>Manage patient bills and collect payments.</p>
+                        </div>
+                    </header>
+                    <div class="directory-toolbar">
+                        <div class="search-wrapper">
+                            <span class="material-symbols-outlined">search</span>
+                            <input type="text" id="billing-search" placeholder="Search pending bills by name...">
+                        </div>
+                        <button class="btn-icon-labeled" id="billing-refresh-btn" title="Refresh">
+                            <span class="material-symbols-outlined">refresh</span>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="glass-panel table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Doctor</th>
+                                    <th>Consultation</th>
+                                    <th>Tests</th>
+                                    <th>Total Due</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billing-tbody">
+                                <!-- Data injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Pharmacy Section -->
+                <div id="section-pharmacy" class="tab-section">
+                    <header class="page-header">
+                        <div class="header-titles">
+                            <h1>Pharmacy Dashboard</h1>
+                            <p>Manage medicine bills for patients.</p>
+                        </div>
+                    </header>
+                    <div class="directory-toolbar">
+                        <div class="search-wrapper">
+                            <span class="material-symbols-outlined">search</span>
+                            <input type="text" id="pharmacy-search" placeholder="Search patients by name...">
+                        </div>
+                        <button class="btn-icon-labeled" id="pharmacy-refresh-btn" title="Refresh">
+                            <span class="material-symbols-outlined">refresh</span>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="glass-panel table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Doctor</th>
+                                    <th>Prescribed Medicines</th>
+                                    <th>Payment Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pharmacy-tbody">
+                                <!-- Data injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Settings Section (Admin Only) -->
+                <div id="section-settings" class="tab-section">
+                    <header class="page-header">
+                        <div class="header-titles">
+                            <h1>Settings (Manage Doctors)</h1>
+                            <p>Add or remove doctors from the system.</p>
+                        </div>
+                    </header>
+                    <div class="form-section">
+                        <h3 class="section-title"><span class="material-symbols-outlined">person_add</span> Add New Doctor</h3>
+                        <form id="add-doctor-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                            <div class="input-group" style="flex: 1; min-width: 200px;">
+                                <label for="new-doctor-name">Doctor Name</label>
+                                <input type="text" id="new-doctor-name" placeholder="e.g., Dr. Strange" required>
+                            </div>
+                            <div class="input-group" style="flex: 1; min-width: 200px;">
+                                <label for="new-doctor-spec">Specialization</label>
+                                <input type="text" id="new-doctor-spec" placeholder="e.g., Neurology" required>
+                            </div>
+                            <div class="form-actions" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start;">
+                                <button type="submit" class="btn-primary" id="btn-add-doctor">
+                                    <span class="material-symbols-outlined">add</span> Add Doctor
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="glass-panel table-container" style="margin-top: 2rem;">
+                        <h3 class="section-title" style="margin: 1rem;"><span class="material-symbols-outlined">list</span> Existing Doctors</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Doctor Name</th>
+                                    <th>Specialization</th>
+                                    <th style="width: 100px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doctors-tbody">
+                                <!-- Data injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -305,6 +514,65 @@
         <span class="material-symbols-outlined">check_circle</span>
         <span id="toast-message">Operation successful!</span>
     </div>
+
+    <!-- Pharmacy Detail Modal -->
+    <div id="pharmacy-modal" class="modal-overlay">
+        <div class="modal-container glass-panel" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2><span class="material-symbols-outlined">local_pharmacy</span> Pharmacy Bill</h2>
+                <button class="btn-icon modal-close-btn" id="pharmacy-close-btn">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body" id="pharmacy-modal-body">
+                <div class="billing-summary-header">
+                    <div><strong>Patient:</strong> <span id="pharm-patient-name"></span></div>
+                    <div><strong>Doctor:</strong> <span id="pharm-doctor-name"></span></div>
+                </div>
+                
+                <div class="medicines-billing-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3>Medicines</h3>
+                        <button class="btn-secondary" id="add-pharmacy-row-btn" style="padding: 5px 10px; font-size: 0.85rem;">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add Medicine
+                        </button>
+                    </div>
+                    
+                    <table class="data-table" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th>Medicine Name</th>
+                                <th style="width: 80px;">Qty</th>
+                                <th style="width: 100px;">Rate (Rs)</th>
+                                <th style="width: 120px;">Total (Rs)</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="pharmacy-bill-tbody">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grand-total-box">
+                    <span>Medicine Total:</span>
+                    <span id="pharm-grand-total">Rs 0.00</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="pharmacy-cancel-btn">Cancel</button>
+                <button class="btn-primary" id="pharmacy-mark-paid-btn">
+                    <span class="material-symbols-outlined">check_circle</span> Mark as Paid & Save
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Success Toast -->
+    <div id="toast" class="toast">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span id="toast-message">Operation successful!</span>
+    </div>
+
 
     <!-- Patient Detail Modal -->
     <div id="patient-modal" class="modal-overlay">
@@ -352,6 +620,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=7"></script>
 </body>
 </html>

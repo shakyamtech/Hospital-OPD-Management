@@ -80,24 +80,27 @@ body {
 
 .login-tabs {
     display: flex;
+    flex-wrap: wrap;
     background: var(--input-bg);
     padding: 4px;
     border-radius: var(--radius-md);
     margin-bottom: 1.5rem;
     border: 1px solid var(--border);
+    gap: 4px;
 }
 
 .login-tab {
-    flex: 1;
-    padding: 0.6rem 1rem;
+    flex: 1 1 auto;
+    padding: 0.6rem 0.5rem;
     border: none;
     background: transparent;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-muted);
     cursor: pointer;
     border-radius: var(--radius-sm);
     transition: all 0.2s ease;
+    text-align: center;
 }
 
 .login-tab.active {
@@ -158,7 +161,8 @@ body {
     pointer-events: none; /* Make sure clicking on the icon doesn't block input focus */
 }
 
-.input-wrapper input {
+.input-wrapper input,
+.input-wrapper select {
     width: 100%;
     padding: 0.75rem 2.75rem 0.75rem 2.75rem !important;
     border: 1px solid var(--border);
@@ -169,7 +173,18 @@ body {
     transition: all 0.2s ease;
 }
 
-.input-wrapper input:focus {
+.input-wrapper select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2em;
+    padding-right: 2.75rem !important;
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
@@ -380,6 +395,16 @@ body {
     font-family: inherit;
     font-size: 0.95rem;
     transition: all 0.2s;
+}
+
+.input-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+    padding-right: 2rem;
 }
 
 .input-group input:focus,
@@ -1341,3 +1366,74 @@ body {
     color: var(--primary);
     font-weight: 600;
 }
+
+.test-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.test-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    background-color: var(--surface);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.test-chip-btn:hover {
+    border-color: var(--primary);
+    background-color: var(--background);
+}
+
+.test-chip-btn.selected {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(10, 107, 209, 0.2);
+}
+
+.test-chip-btn.selected .material-symbols-outlined {
+    color: white;
+}
+
+.test-chip-btn .material-symbols-outlined {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+
+.badge-primary { background: #e0e7ff; color: #4338ca; }
+.badge-warning { background: #ffedd5; color: #c2410c; }
+.badge-grey { background: #f3f4f6; color: #4b5563; }
+
+/* Stats Dashboard */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.stat-card { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.6); padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.stat-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.stat-icon .material-symbols-outlined { font-size: 28px; }
+.stat-info h3 { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 0.3rem 0; font-weight: 500; }
+.stat-info p { font-size: 1.5rem; font-weight: 700; color: var(--text-color); margin: 0; }
+
+
+/* Pharmacy Specific Styles */
+.billing-summary-header { display: flex; justify-content: space-between; background: rgba(0,0,0,0.03); padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.95rem; }
+.medicines-billing-section h3 { margin: 0; font-size: 1.1rem; color: var(--text-color); }
+.medicine-row-input { width: 100%; padding: 8px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; font-family: inherit; font-size: 0.9rem; }
+.medicine-row-input:focus { border-color: var(--primary); outline: none; }
+.row-total-display { font-weight: 600; color: var(--text-color); }
+.btn-delete-row { background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.btn-delete-row:hover { background: rgba(239,68,68,0.1); }
+
+.grand-total-box { margin-top: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+.grand-total-box span:first-child { font-size: 1.2rem; font-weight: 600; color: #065f46; }
+.grand-total-box span:last-child { font-size: 1.8rem; font-weight: 800; color: #10b981; }

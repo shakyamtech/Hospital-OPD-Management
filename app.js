@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Constants ---
-    const API_BASE = 'http://localhost:8080/api';
+    const API_BASE = 'http://127.0.0.1:8000/api';
 
     // --- DOM Elements ---
     const loginView = document.getElementById('login-view');
@@ -15,8 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tabs
     const tabRegister = document.getElementById('tab-register');
     const tabDirectory = document.getElementById('tab-directory');
+    const tabBilling = document.getElementById('tab-billing');
+    const tabPharmacy = document.getElementById('tab-pharmacy');
+    const tabSettings = document.getElementById('tab-settings');
     const sectionRegister = document.getElementById('section-register');
     const sectionDirectory = document.getElementById('section-directory');
+    const sectionBilling = document.getElementById('section-billing');
+    const sectionPharmacy = document.getElementById('section-pharmacy');
+    const sectionSettings = document.getElementById('section-settings');
 
     // Modal
     const patientModal = document.getElementById('patient-modal');
@@ -49,11 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State ---
     let patientsCache = [];
+    let doctorsCache = [];
     let currentViewPatient = null;
     let deleteTargetId = null;
 
     // --- Initialize ---
     const isAuthenticated = localStorage.getItem('opd_auth') === 'true';
+    fetchDoctors();
     if (isAuthenticated) {
         showDashboard();
     } else {
@@ -73,31 +81,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Role Tab Switch on Login Page
-    const tabAdmin = document.getElementById('login-tab-admin');
-    const tabDoctor = document.getElementById('login-tab-doctor');
+    const loginTabs = document.querySelectorAll('.login-tab');
     const loginRole = document.getElementById('login-role');
     const doctorGroup = document.getElementById('login-doctor-group');
     const emailGroup = document.getElementById('login-email-group');
     const emailInput = document.getElementById('login-email');
 
-    if (tabAdmin && tabDoctor) {
-        tabAdmin.addEventListener('click', () => {
-            tabAdmin.classList.add('active');
-            tabDoctor.classList.remove('active');
-            loginRole.value = 'admin';
-            doctorGroup.style.display = 'none';
-            emailGroup.style.display = 'block';
-            emailInput.required = true;
-        });
+    // Check for admin in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdminUrl = urlParams.has('admin') || window.location.pathname.endsWith('/admin') || window.location.hash === '#admin';
+    const adminTab = document.getElementById('login-tab-admin');
+    
+    if (isAdminUrl && adminTab) {
+        adminTab.style.display = 'inline-block';
+    } else if (adminTab) {
+        adminTab.style.display = 'none';
+    }
 
-        tabDoctor.addEventListener('click', () => {
-            tabDoctor.classList.add('active');
-            tabAdmin.classList.remove('active');
-            loginRole.value = 'doctor';
-            doctorGroup.style.display = 'block';
-            emailGroup.style.display = 'none';
-            emailInput.required = false;
+    loginTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            loginTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            const role = tab.getAttribute('data-role');
+            if (loginRole) loginRole.value = role;
+            
+            if (role === 'doctor') {
+                if (doctorGroup) doctorGroup.style.display = 'block';
+                if (emailGroup) emailGroup.style.display = 'none';
+                if (emailInput) emailInput.required = false;
+            } else {
+                if (doctorGroup) doctorGroup.style.display = 'none';
+                if (emailGroup) emailGroup.style.display = 'block';
+                if (emailInput) emailInput.required = true;
+            }
         });
+    });
+
+    // Auto select admin if URL has it
+    if (isAdminUrl && adminTab) {
+        adminTab.click();
     }
 
     // Login
@@ -115,7 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('opd_doctor_id', doctorVal);
                 localStorage.setItem('opd_username', formatDoctor(doctorVal));
             } else {
-                localStorage.setItem('opd_username', 'Dr. Admin');
+                let displayName = 'Administrator';
+                if (role === 'staff') displayName = 'Staff Member';
+                else if (role === 'cashier') displayName = 'Cashier';
+                else if (role === 'pharmacy') displayName = 'Pharmacist';
+                
+                localStorage.setItem('opd_username', displayName);
                 localStorage.removeItem('opd_doctor_id');
             }
 
@@ -141,14 +169,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Tab Switching
-    tabRegister.addEventListener('click', () => {
-        switchTab('register');
-    });
+    if (tabRegister) {
+        tabRegister.addEventListener('click', () => {
+            switchTab('register');
+        });
+    }
 
-    tabDirectory.addEventListener('click', () => {
-        switchTab('directory');
-        loadPatients();
-    });
+    if (tabDirectory) {
+        tabDirectory.addEventListener('click', () => {
+            switchTab('directory');
+            loadPatients();
+        });
+    }
+
+    if (tabBilling) {
+        tabBilling.addEventListener('click', () => {
+            switchTab('billing');
+            // loadBilling(); // Uncomment when implemented
+        });
+    }
+    
+    if (tabPharmacy) {
+        tabPharmacy.addEventListener('click', () => {
+            switchTab('pharmacy');
+            if (typeof loadPharmacy === 'function') loadPharmacy();
+        });
+    }
+    
+    if (tabSettings) {
+        tabSettings.addEventListener('click', () => {
+            switchTab('settings');
+            if (typeof fetchDoctors === 'function') fetchDoctors();
+        });
+    }
 
     // Search & Advanced Filters
     searchInput.addEventListener('input', applyFilters);
@@ -827,17 +880,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Tab Switching ---
     function switchTab(tab) {
-        if (tab === 'register') {
-            tabRegister.classList.add('active');
-            tabDirectory.classList.remove('active');
-            sectionRegister.classList.add('active');
-            sectionDirectory.classList.remove('active');
-        } else {
-            tabDirectory.classList.add('active');
-            tabRegister.classList.remove('active');
-            sectionDirectory.classList.add('active');
-            sectionRegister.classList.remove('active');
-        }
+        const tabs = ['register', 'directory', 'billing', 'pharmacy', 'settings'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`tab-${t}`);
+            const sec = document.getElementById(`section-${t}`);
+            if (btn) btn.classList.remove('active');
+            if (sec) sec.classList.remove('active');
+        });
+
+        const activeBtn = document.getElementById(`tab-${tab}`);
+        const activeSec = document.getElementById(`section-${tab}`);
+        if (activeBtn) activeBtn.classList.add('active');
+        if (activeSec) activeSec.classList.add('active');
     }
 
     // --- View Helpers ---
@@ -869,9 +923,17 @@ document.addEventListener('DOMContentLoaded', () => {
         applyRolePermissionsToForm(false);
         
         if (role === 'doctor') {
+            if (tabRegister) tabRegister.style.display = 'none';
+            if (tabBilling) tabBilling.style.display = 'none';
+            if (tabPharmacy) tabPharmacy.style.display = 'none';
+            if (tabSettings) tabSettings.style.display = 'none';
             switchTab('directory');
             loadPatients();
         } else {
+            if (tabRegister) tabRegister.style.display = 'inline-flex';
+            if (tabBilling) tabBilling.style.display = 'inline-flex';
+            // Keeping Pharmacy and Settings conditionally hidden if needed, 
+            // but ensuring Register is shown.
             switchTab('register');
         }
     }
@@ -961,12 +1023,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatDoctor(value) {
+        if (!value) return '-';
+        const doc = doctorsCache.find(d => d.id === value);
+        if (doc) {
+            return `Dr. ${doc.name} (${doc.specialization})`;
+        }
         const map = {
             'dr-smith': 'Dr. Smith (Cardiology)',
             'dr-jane': 'Dr. Jane (General)',
             'dr-patel': 'Dr. Patel (Orthopedics)',
         };
-        return map[value] || value || '—';
+        return map[value] || value || '-';
     }
 
     function escapeHtml(str) {
@@ -983,4 +1050,125 @@ document.addEventListener('DOMContentLoaded', () => {
         if (patient) editPatient(patient);
     };
     window._deletePatient = (id, name) => showDeleteConfirm(id, name);
+
+    // --- Doctor Management Logic ---
+    async function fetchDoctors() {
+        try {
+            const response = await fetch(`${API_BASE}/doctors`);
+            if (response.ok) {
+                const data = await response.json();
+                doctorsCache = data.doctors || [];
+                populateDoctorDropdowns(doctorsCache);
+                renderDoctorSettings(doctorsCache);
+            } else {
+                console.warn('API returned non-OK status, falling back to empty doctor list.');
+                populateDoctorDropdowns([]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch doctors', error);
+            populateDoctorDropdowns([]);
+        }
+    }
+
+    function populateDoctorDropdowns(doctors) {
+        const loginDoc = document.getElementById('login-doctor');
+        const regDoc = document.getElementById('doctor');
+        const filterDoc = document.getElementById('filter-doctor');
+
+        let loginHtml = '<option value="" disabled selected>Select Doctor Profile</option>';
+        let regHtml = '<option value="" disabled selected>Select Doctor</option>';
+        let filterHtml = '<option value="">All Doctors</option>';
+
+        if (!doctors || doctors.length === 0) {
+            loginHtml = '<option value="" disabled selected>No doctors available</option>';
+            regHtml = '<option value="" disabled selected>No doctors available</option>';
+        } else {
+            doctors.forEach(d => {
+                const val = d.id;
+                const text = `${d.name} (${d.specialization})`;
+                const opt = `<option value="${val}">${text}</option>`;
+                loginHtml += opt;
+                regHtml += opt;
+                filterHtml += opt;
+            });
+        }
+
+        if (loginDoc) loginDoc.innerHTML = loginHtml;
+        if (regDoc) regDoc.innerHTML = regHtml;
+        if (filterDoc) filterDoc.innerHTML = filterHtml;
+    }
+
+    function renderDoctorSettings(doctors) {
+        const tbody = document.getElementById('doctors-tbody');
+        if (!tbody) return;
+        
+        if (doctors.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 1rem;">No doctors found. Add one above.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = doctors.map(d => `
+            <tr>
+                <td><strong>${d.name.replace(/</g, "&lt;")}</strong></td>
+                <td>${d.specialization.replace(/</g, "&lt;")}</td>
+                <td>
+                    <button class="btn-secondary" style="color: var(--danger);" onclick="window._deleteDoctor('${d.id}')">
+                        <span class="material-symbols-outlined">delete</span> Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    const addDoctorForm = document.getElementById('add-doctor-form');
+    if (addDoctorForm) {
+        addDoctorForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('new-doctor-name').value.trim();
+            const spec = document.getElementById('new-doctor-spec').value.trim();
+            if (!name || !spec) return;
+
+            const btn = document.getElementById('btn-add-doctor');
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            try {
+                const response = await fetch(`${API_BASE}/doctors`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, specialization: spec })
+                });
+                if (response.ok) {
+                    showToast('Doctor added successfully!');
+                    addDoctorForm.reset();
+                    fetchDoctors();
+                } else {
+                    showToast('Failed to add doctor.');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Error adding doctor.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined">add</span> Add Doctor';
+            }
+        });
+    }
+
+    window._deleteDoctor = async function(id) {
+        if (!confirm('Are you sure you want to delete this doctor?')) return;
+        try {
+            const response = await fetch(`${API_BASE}/doctors/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                showToast('Doctor deleted successfully!');
+                fetchDoctors();
+            } else {
+                showToast('Failed to delete doctor.');
+            }
+        } catch (error) {
+            console.error(error);
+            showToast('Error deleting doctor.');
+        }
+    };
+
 });

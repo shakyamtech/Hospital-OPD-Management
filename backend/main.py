@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
-from models import Patient
+from models import Patient, Doctor
 
 # Initialize FastAPI app
 app = FastAPI(title="OPD Connect API", description="API for OPD Hospital App")
@@ -129,6 +129,49 @@ async def delete_patient(patient_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete patient: {str(e)}")
+
+@app.post("/api/doctors")
+async def register_doctor(doctor: Doctor):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        doctor_data = doctor.model_dump()
+        doc_ref = db.collection("doctors").document()
+        doc_ref.set(doctor_data)
+        return {"message": "Doctor added successfully", "id": doc_ref.id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add doctor: {str(e)}")
+
+@app.get("/api/doctors")
+async def get_doctors():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        doctors_ref = db.collection("doctors")
+        docs = doctors_ref.stream()
+        doctors_list = []
+        for doc in docs:
+            d = doc.to_dict()
+            d["id"] = doc.id
+            doctors_list.append(d)
+        return {"doctors": doctors_list}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve doctors: {str(e)}")
+
+@app.delete("/api/doctors/{doctor_id}")
+async def delete_doctor(doctor_id: str):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        doc_ref = db.collection("doctors").document(doctor_id)
+        if not doc_ref.get().exists:
+            raise HTTPException(status_code=404, detail="Doctor not found.")
+        doc_ref.delete()
+        return {"message": "Doctor deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete doctor: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
