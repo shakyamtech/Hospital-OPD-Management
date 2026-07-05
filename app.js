@@ -1382,6 +1382,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (patient.appointment?.pharmacyBill && patient.appointment.pharmacyBill.length > 0) {
             patient.appointment.pharmacyBill.forEach(med => addPharmacyRow(med.name, med.qty, med.rate));
+        } else if (patient.medical?.medicines) {
+            const meds = patient.medical.medicines.split(/[,;\n]+/).map(m => m.trim()).filter(m => m.length > 0);
+            if (meds.length > 0) {
+                meds.forEach(medName => addPharmacyRow(medName, 1, 0));
+            } else {
+                addPharmacyRow('', 1, 0);
+            }
         } else {
             addPharmacyRow('', 1, 0); 
         }
