@@ -844,7 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tbody>
                     <tr>
                         <td>1</td>
-                        <td>OPD Registration Fee & Consultation Charges - ${escapeHtml(formatDoctor(a.doctor))}</td>
+                        <td>OPD Registration Fee & Consultation Charges${m.tests ? ' (Including Tests)' : ''} - ${escapeHtml(formatDoctor(a.doctor))}</td>
                         <td style="text-align: right;">Rs ${parseFloat(a.charges || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
@@ -858,7 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>Prescription & Clinical Details</h3>
                 <div class="print-meta-row" style="margin-bottom: 8px;">
                     <span class="print-meta-label" style="width: 150px; display: inline-block;">Primary Complaint:</span>
-                    <span>${escapeHtml(m.description || '—')}</span>
+                    <span>${escapeHtml(m.description || '-')}</span>
                 </div>
                 ${m.previousIllness ? `
                 <div class="print-meta-row" style="margin-bottom: 8px;">
@@ -870,6 +870,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="print-meta-label">Prescribed Medicines:</span>
                 </div>
                 <div class="print-prescription-text">${escapeHtml(m.medicines || 'No medicines prescribed.')}</div>
+
+                ${m.tests ? `
+                <div class="print-meta-row" style="margin-top: 15px; margin-bottom: 5px;">
+                    <span class="print-meta-label">Tests & Investigations:</span>
+                </div>
+                <div class="print-prescription-text">${escapeHtml(m.tests)}</div>` : ''}
                 
                 ${a.followupDate ? `
                 <div class="print-meta-row" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 8px;">
