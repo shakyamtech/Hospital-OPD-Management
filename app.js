@@ -952,11 +952,32 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabSettings) tabSettings.style.display = 'none';
             switchTab('directory');
             loadPatients();
+        } else if (role === 'pharmacy') {
+            if (tabRegister) tabRegister.style.display = 'none';
+            if (tabBilling) tabBilling.style.display = 'none';
+            if (tabPharmacy) tabPharmacy.style.display = 'inline-flex';
+            if (tabSettings) tabSettings.style.display = 'none';
+            switchTab('pharmacy');
+            if (typeof loadPharmacy === 'function') loadPharmacy();
+        } else if (role === 'cashier') {
+            if (tabRegister) tabRegister.style.display = 'none';
+            if (tabBilling) tabBilling.style.display = 'inline-flex';
+            if (tabPharmacy) tabPharmacy.style.display = 'none';
+            if (tabSettings) tabSettings.style.display = 'none';
+            switchTab('billing');
+            if (typeof loadBilling === 'function') loadBilling();
+        } else if (role === 'staff') {
+            if (tabRegister) tabRegister.style.display = 'inline-flex';
+            if (tabBilling) tabBilling.style.display = 'none';
+            if (tabPharmacy) tabPharmacy.style.display = 'none';
+            if (tabSettings) tabSettings.style.display = 'none';
+            switchTab('register');
         } else {
+            // Admin sees all
             if (tabRegister) tabRegister.style.display = 'inline-flex';
             if (tabBilling) tabBilling.style.display = 'inline-flex';
-            // Keeping Pharmacy and Settings conditionally hidden if needed, 
-            // but ensuring Register is shown.
+            if (tabPharmacy) tabPharmacy.style.display = 'inline-flex';
+            if (tabSettings) tabSettings.style.display = 'inline-flex';
             switchTab('register');
         }
     }
