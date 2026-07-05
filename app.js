@@ -844,7 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tbody>
                     <tr>
                         <td>1</td>
-                        <td>OPD Registration Fee & Consultation Charges${m.tests ? ' (Including Tests)' : ''} - ${escapeHtml(formatDoctor(a.doctor))}</td>
+                        <td>OPD Registration Fee & Consultation Charges - ${escapeHtml(formatDoctor(a.doctor))}</td>
                         <td style="text-align: right;">Rs ${parseFloat(a.charges || 0).toFixed(2)}</td>
                     </tr>
                     <tr>
@@ -1471,24 +1471,17 @@ document.addEventListener('DOMContentLoaded', () => {
         chip.addEventListener('click', () => {
             const isSelected = chip.classList.toggle('selected');
             const icon = chip.querySelector('.material-symbols-outlined');
-            const charge = parseFloat(chip.getAttribute('data-charge')) || 0;
-            let currentCharges = parseFloat(chargesInput.value) || 0;
-
             if (isSelected) {
                 if (icon) icon.textContent = 'check';
                 chip.style.backgroundColor = 'var(--primary)';
                 chip.style.color = '#fff';
                 chip.style.borderColor = 'var(--primary)';
-                currentCharges += charge;
             } else {
                 if (icon) icon.textContent = 'add';
                 chip.style.backgroundColor = '';
                 chip.style.color = '';
                 chip.style.borderColor = '';
-                currentCharges -= charge;
-                if (currentCharges < 0) currentCharges = 0;
             }
-            chargesInput.value = currentCharges;
 
             // Update hidden input
             const selectedTests = Array.from(document.querySelectorAll('.test-chip-btn.selected'))
