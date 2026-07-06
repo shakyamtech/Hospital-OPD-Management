@@ -36,8 +36,139 @@
 </head>
 <body>
     <div id="app">
+        <!-- Landing View -->
+        <div id="landing-view" class="view active">
+            <!-- Header -->
+            <header class="landing-header">
+                <div class="landing-container header-container">
+                    <div class="landing-brand">
+                        <span class="material-symbols-outlined logo-icon-small">local_hospital</span>
+                        <h2>OPD Connect</h2>
+                    </div>
+                    <nav class="landing-nav">
+                        <a href="#about">About Us</a>
+                        <a href="#services">Services</a>
+                        <a href="#doctors">Doctors</a>
+                        <a href="#contact">Contact</a>
+                    </nav>
+                    <div class="header-actions">
+                        <button type="button" class="btn-secondary btn-portal" id="btn-portal-login">
+                            <span class="material-symbols-outlined">login</span>
+                            Portal Login
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-bg"></div>
+                <div class="hero-overlay"></div>
+                <div class="landing-container hero-content">
+                    <span class="hero-badge">Welcome to OPD Connect</span>
+                    <h1 class="hero-title">Advanced Healthcare Solutions <br><span class="text-gradient">For Your Well-being</span></h1>
+                    <p class="hero-subtitle">Experience world-class medical care with state-of-the-art facilities and compassionate professionals dedicated to your health.</p>
+                    <div class="hero-actions">
+                        <button type="button" class="btn-primary btn-large">
+                            Book Appointment
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                        <button type="button" class="btn-outline btn-large">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Grid -->
+            <section class="features-section">
+                <div class="landing-container">
+                    <div class="features-grid">
+                        <div class="feature-card glass-panel">
+                            <div class="feature-icon"><span class="material-symbols-outlined">emergency</span></div>
+                            <h3>24/7 Emergency</h3>
+                            <p>Immediate medical attention available round the clock for all critical situations.</p>
+                        </div>
+                        <div class="feature-card glass-panel">
+                            <div class="feature-icon"><span class="material-symbols-outlined">stethoscope</span></div>
+                            <h3>Expert Doctors</h3>
+                            <p>Highly qualified and experienced specialists across various medical fields.</p>
+                        </div>
+                        <div class="feature-card glass-panel">
+                            <div class="feature-icon"><span class="material-symbols-outlined">medical_services</span></div>
+                            <h3>Modern Equipment</h3>
+                            <p>Advanced diagnostic and therapeutic technology for accurate care.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Services Section -->
+            <section id="services" class="services-section">
+                <div class="landing-container">
+                    <div class="section-header text-center">
+                        <h2>Our Specialities</h2>
+                        <p>Comprehensive healthcare services under one roof.</p>
+                    </div>
+                    <div class="services-grid">
+                        <div class="service-card">
+                            <span class="material-symbols-outlined service-icon">favorite</span>
+                            <h4>Cardiology</h4>
+                            <p>Expert care for your heart health.</p>
+                        </div>
+                        <div class="service-card">
+                            <span class="material-symbols-outlined service-icon">psychology</span>
+                            <h4>Neurology</h4>
+                            <p>Advanced treatments for brain and nerves.</p>
+                        </div>
+                        <div class="service-card">
+                            <span class="material-symbols-outlined service-icon">dentistry</span>
+                            <h4>Dental Care</h4>
+                            <p>Complete oral and dental solutions.</p>
+                        </div>
+                        <div class="service-card">
+                            <span class="material-symbols-outlined service-icon">pediatrics</span>
+                            <h4>Pediatrics</h4>
+                            <p>Specialized healthcare for children.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="landing-footer">
+                <div class="landing-container footer-content">
+                    <div class="footer-brand">
+                        <div class="brand-title">
+                            <span class="material-symbols-outlined">local_hospital</span>
+                            <h2>OPD Connect</h2>
+                        </div>
+                        <p>Providing the best medical services with trust and care since 1995.</p>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Quick Links</h4>
+                        <ul>
+                            <li><a href="#">Home</a></li>
+                            <li><a href="#about">About Us</a></li>
+                            <li><a href="#services">Services</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-contact">
+                        <h4>Contact Us</h4>
+                        <p><span class="material-symbols-outlined">location_on</span> 123 Healthcare Ave, Medical City</p>
+                        <p><span class="material-symbols-outlined">call</span> +1 234 567 8900</p>
+                        <p><span class="material-symbols-outlined">mail</span> info@opdconnect.com</p>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 OPD Connect. All rights reserved.</p>
+                </div>
+            </footer>
+        </div>
+
         <!-- Login View -->
-        <div id="login-view" class="view active">
+        <div id="login-view" class="view">
             <div class="login-container">
                 <div class="login-brand">
                     <span class="material-symbols-outlined logo-icon">local_hospital</span>

@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = 'https://hospital-opd-management.onrender.com/api';
 
     // --- DOM Elements ---
+    const landingView = document.getElementById('landing-view');
     const loginView = document.getElementById('login-view');
     const dashboardView = document.getElementById('dashboard-view');
     const loginForm = document.getElementById('login-form');
@@ -62,12 +63,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initialize ---
     const isAuthenticated = localStorage.getItem('opd_auth') === 'true';
     fetchDoctors().then(() => {
-        if (isAuthenticated) {
-            showDashboard();
+        if (window.location.hash === '#admin' || window.location.hash === '#login' || window.location.search.includes('admin')) {
+            if (isAuthenticated) {
+                showDashboard();
+            } else {
+                showLogin();
+            }
         } else {
-            showLogin();
+            showLanding();
         }
     });
+
+    const btnPortalLogin = document.getElementById('btn-portal-login');
+    if (btnPortalLogin) {
+        btnPortalLogin.addEventListener('click', () => {
+            const isAuth = localStorage.getItem('opd_auth') === 'true';
+            if (isAuth) {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        });
+    }
 
     // Toggle Password Visibility
     const togglePasswordBtn = document.getElementById('toggle-password');
@@ -918,13 +935,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- View Helpers ---
+    function showLanding() {
+        dashboardView.classList.remove('active');
+        loginView.classList.remove('active');
+        landingView.classList.add('active');
+    }
+
     function showLogin() {
         dashboardView.classList.remove('active');
+        landingView.classList.remove('active');
         loginView.classList.add('active');
     }
 
     function showDashboard() {
         loginView.classList.remove('active');
+        landingView.classList.remove('active');
         dashboardView.classList.add('active');
 
         const role = localStorage.getItem('opd_role') || 'admin';
