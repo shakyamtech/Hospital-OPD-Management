@@ -806,6 +806,48 @@
         </div>
     </div>
 
+    <!-- Public Booking Modal -->
+    <div id="public-booking-modal" class="modal-overlay">
+        <div class="modal-container glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2><span class="material-symbols-outlined">calendar_month</span> Request Appointment</h2>
+                <button class="btn-icon modal-close-btn" id="public-booking-close-btn">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="public-booking-form">
+                    <div class="form-group">
+                        <label for="booking-name">Full Name</label>
+                        <input type="text" id="booking-name" required placeholder="e.g., John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="booking-phone">Phone Number</label>
+                        <input type="tel" id="booking-phone" required placeholder="e.g., 9800000000">
+                    </div>
+                    <div class="form-group">
+                        <label for="booking-date">Preferred Date</label>
+                        <input type="date" id="booking-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="booking-doctor">Select Doctor / Specialty</label>
+                        <select id="booking-doctor" required>
+                            <option value="">-- Choose Option --</option>
+                            <option value="Dr. Ayush Sharma">Dr. Ayush Sharma (Cardiology)</option>
+                            <option value="Dr. Priya Patel">Dr. Priya Patel (Neurology)</option>
+                            <option value="Dr. Rohan Shrestha">Dr. Rohan Shrestha (Pediatrics)</option>
+                            <option value="Dr. Anita Thapa">Dr. Anita Thapa (Orthopedics)</option>
+                            <option value="General">General Physician</option>
+                        </select>
+                    </div>
+                    <div class="form-actions" style="margin-top: 2rem;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 

@@ -86,18 +86,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const publicBookingModal = document.getElementById('public-booking-modal');
+    const publicBookingCloseBtn = document.getElementById('public-booking-close-btn');
+    const publicBookingForm = document.getElementById('public-booking-form');
+    const bookingDoctorSelect = document.getElementById('booking-doctor');
+
     const btnBookList = document.querySelectorAll('.btn-book');
     btnBookList.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const isAuth = localStorage.getItem('opd_auth') === 'true';
-            if (isAuth) {
-                showDashboard();
-            } else {
-                showLogin();
+            
+            if (publicBookingModal) {
+                // If clicked from a doctor card, pre-select the doctor
+                const doctorCard = e.target.closest('.doctor-card');
+                if (doctorCard && bookingDoctorSelect) {
+                    const docName = doctorCard.querySelector('h3').textContent.trim();
+                    for (let i = 0; i < bookingDoctorSelect.options.length; i++) {
+                        if (bookingDoctorSelect.options[i].value === docName) {
+                            bookingDoctorSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                } else if (bookingDoctorSelect) {
+                    bookingDoctorSelect.selectedIndex = 0; // reset
+                }
+                publicBookingModal.classList.add('active');
             }
         });
     });
+
+    if (publicBookingCloseBtn) {
+        publicBookingCloseBtn.addEventListener('click', () => {
+            if (publicBookingModal) publicBookingModal.classList.remove('active');
+        });
+    }
+
+    if (publicBookingForm) {
+        publicBookingForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (publicBookingModal) publicBookingModal.classList.remove('active');
+            publicBookingForm.reset();
+            alert("Your appointment request has been sent! We will contact you shortly to confirm the time.");
+        });
+    }
 
     const loginLogo = document.getElementById('login-logo');
     if (loginLogo) {
