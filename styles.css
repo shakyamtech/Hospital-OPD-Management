@@ -1897,6 +1897,82 @@ body {
     font-size: 0.95rem;
 }
 
+/* Doctors Section */
+.doctors-section {
+    padding: 6rem 0;
+    background: var(--background);
+}
+
+.doctors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.doctor-card {
+    background: var(--surface);
+    padding: 2.5rem 1.5rem;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--border);
+}
+
+.doctor-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-lg);
+}
+
+.doctor-avatar {
+    width: 100px;
+    height: 100px;
+    background: rgba(240, 154, 123, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+}
+
+.doctor-avatar .material-symbols-outlined {
+    font-size: 3rem;
+    color: var(--primary);
+}
+
+.doctor-info h3 {
+    font-size: 1.25rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.doctor-specialty {
+    color: var(--secondary);
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.btn-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: gap 0.3s ease;
+}
+
+.btn-text:hover {
+    gap: 0.8rem;
+}
+
+.btn-text .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
 @media (max-width: 768px) {
     .landing-nav {
         display: none;
