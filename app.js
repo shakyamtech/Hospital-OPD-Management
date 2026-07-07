@@ -91,18 +91,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const publicBookingForm = document.getElementById('public-booking-form');
     const bookingDoctorSelect = document.getElementById('booking-doctor');
 
-    const btnBookList = document.querySelectorAll('.btn-book');
-    btnBookList.forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-book');
+        if (btn) {
             e.preventDefault();
-            
             if (publicBookingModal) {
                 // If clicked from a doctor card, pre-select the doctor
-                const doctorCard = e.target.closest('.doctor-card');
+                const doctorCard = btn.closest('.doctor-card');
                 if (doctorCard && bookingDoctorSelect) {
                     const docName = doctorCard.querySelector('h3').textContent.trim();
                     for (let i = 0; i < bookingDoctorSelect.options.length; i++) {
-                        if (bookingDoctorSelect.options[i].value === docName) {
+                        if (bookingDoctorSelect.options[i].text.includes(docName)) {
                             bookingDoctorSelect.selectedIndex = i;
                             break;
                         }
@@ -112,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 publicBookingModal.classList.add('active');
             }
-        });
+        }
     });
 
     if (publicBookingCloseBtn) {
@@ -1183,6 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 doctorsCache = data.doctors || [];
                 populateDoctorDropdowns(doctorsCache);
                 renderDoctorSettings(doctorsCache);
+                renderPublicDoctors(doctorsCache);
             } else {
                 console.warn('API returned non-OK status, falling back to empty doctor list.');
                 populateDoctorDropdowns([]);
@@ -1197,14 +1197,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const loginDoc = document.getElementById('login-doctor');
         const regDoc = document.getElementById('doctor');
         const filterDoc = document.getElementById('filter-doctor');
+        const bookingDoc = document.getElementById('booking-doctor');
 
         let loginHtml = '<option value="" disabled selected>Select Doctor Profile</option>';
         let regHtml = '<option value="" disabled selected>Select Doctor</option>';
         let filterHtml = '<option value="">All Doctors</option>';
+        let bookingHtml = '<option value="">-- Choose Option --</option>';
 
         if (!doctors || doctors.length === 0) {
             loginHtml = '<option value="" disabled selected>No doctors available</option>';
             regHtml = '<option value="" disabled selected>No doctors available</option>';
+            bookingHtml = '<option value="">No doctors available</option>';
         } else {
             doctors.forEach(d => {
                 const val = d.id;
@@ -1213,12 +1216,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginHtml += opt;
                 regHtml += opt;
                 filterHtml += opt;
+                bookingHtml += opt;
             });
+            bookingHtml += '<option value="General">General Physician</option>';
         }
 
         if (loginDoc) loginDoc.innerHTML = loginHtml;
         if (regDoc) regDoc.innerHTML = regHtml;
         if (filterDoc) filterDoc.innerHTML = filterHtml;
+        if (bookingDoc) bookingDoc.innerHTML = bookingHtml;
+    }
+
+    function renderPublicDoctors(doctors) {
+        const grid = document.getElementById('public-doctors-grid');
+        if (!grid) return;
+        
+        if (doctors.length === 0) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No doctors currently available.</p>';
+            return;
+        }
+
+        // Show top 4 or all
+        const docsToShow = doctors.slice(0, 4);
+        let html = '';
+        docsToShow.forEach(d => {
+            html += `
+                <div class="doctor-card glass-panel">
+                    <div class="doctor-avatar">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="doctor-info">
+                        <h3>${d.name}</h3>
+                        <p class="doctor-specialty">${d.specialization}</p>
+                        <a href="#" class="btn-text btn-book">Book Appointment <span class="material-symbols-outlined">arrow_forward</span></a>
+                    </div>
+                </div>
+            `;
+        });
+        grid.innerHTML = html;
     }
 
     function renderDoctorSettings(doctors) {
