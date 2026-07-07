@@ -86,6 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const btnBookList = document.querySelectorAll('.btn-book');
+    btnBookList.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isAuth = localStorage.getItem('opd_auth') === 'true';
+            if (isAuth) {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        });
+    });
+
     const loginLogo = document.getElementById('login-logo');
     if (loginLogo) {
         loginLogo.addEventListener('click', () => {
