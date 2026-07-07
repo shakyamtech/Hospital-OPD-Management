@@ -1633,7 +1633,7 @@ body {
 .btn-large.btn-secondary {
     background: var(--secondary);
     color: white;
-    border: none;
+    border: 1px solid var(--background);
 }
 .btn-large.btn-secondary:hover {
     background: #08211e;
