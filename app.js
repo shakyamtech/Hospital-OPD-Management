@@ -86,6 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const loginLogo = document.getElementById('login-logo');
+    if (loginLogo) {
+        loginLogo.addEventListener('click', () => {
+            showLanding();
+            if (window.location.hash) {
+                window.history.pushState('', document.title, window.location.pathname + window.location.search);
+            }
+        });
+    }
+
     // Toggle Password Visibility
     const togglePasswordBtn = document.getElementById('toggle-password');
     const loginPasswordInput = document.getElementById('login-password');
