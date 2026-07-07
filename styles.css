@@ -1606,6 +1606,7 @@ body {
 .btn-large {
     height: 56px;
     padding: 0 2rem;
+    margin: 0;
     font-size: 1.1rem;
     border-radius: 2rem;
     display: flex;
