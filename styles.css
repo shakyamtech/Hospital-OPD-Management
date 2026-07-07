@@ -1545,7 +1545,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
+    background: url('assets/luxury_hospital_bg.png') center/cover no-repeat;
     z-index: 1;
 }
 
