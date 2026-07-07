@@ -1236,8 +1236,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Show top 4 or all
-        const docsToShow = doctors.slice(0, 4);
+        // Show all doctors
+        const docsToShow = doctors;
         let html = '';
         docsToShow.forEach(d => {
             html += `
