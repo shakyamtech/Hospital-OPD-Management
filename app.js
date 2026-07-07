@@ -363,6 +363,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 showToast(isEditMode ? 'Patient updated successfully!' : 'Patient registered successfully!');
                 resetForm();
+                
+                if (!isEditMode && window._currentProcessingRequestId && window._onlineRequestsCache) {
+                    const req = window._onlineRequestsCache.find(r => r.id === window._currentProcessingRequestId);
+                    if (req) {
+                        req.status = 'registered';
+                        fetch(`${API_BASE}/appointment-requests/${req.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(req)
+                        }).then(() => {
+                            window._currentProcessingRequestId = null;
+                            if (typeof fetchAppointmentRequests === 'function') fetchAppointmentRequests();
+                        }).catch(console.error);
+                    }
+                }
+
                 if (isEditMode) {
                     switchTab('directory');
                     loadPatients();
@@ -1189,7 +1205,18 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.classList.remove('show');
         }, 3000);
     }
-
+    function formatDoctor(value) {
+        if (!value) return '';
+        const doc = doctorsCache.find(d => d.id === value);
+        if (doc) {
+            return `Dr. ${doc.name} (${doc.specialization})`;
+        }
+        
+        // Fallback for older hardcoded data
+        const map = {
+            'dr-smith': 'Dr. Smith (Cardiology)',
+            'dr-jane': 'Dr. Jane (General)',
+            'dr-patel': 'Dr. Patel (Orthopedics)',
         };
         return map[value] || value || '-';
     }
@@ -1787,7 +1814,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('requests-tbody');
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading requests...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading requests...</td></tr>';
         
         try {
             const response = await fetch(`${API_BASE}/appointment-requests`);
@@ -1796,10 +1823,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const requests = data.requests || [];
                 if (requests.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No online requests currently.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No online requests currently.</td></tr>';
                     return;
                 }
                 
+                window._onlineRequestsCache = requests;
                 let html = '';
                 requests.forEach(r => {
                     // find doctor name to display
@@ -1814,22 +1842,69 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td>${r.date}</td>
                             <td>${doctorName}</td>
                             <td>
-                                <span class="status-badge status-pending" style="background: var(--warning); color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                <span class="status-badge status-${r.status}" style="background: var(--warning); color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">
                                     ${r.status}
                                 </span>
+                            </td>
+                            <td>
+                                ${r.status !== 'registered' ? `<button class="btn-primary" style="padding: 4px 8px; font-size: 0.85rem;" onclick="window.registerFromRequest('${r.id}')"><span class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">person_add</span>Register</button>` : ''}
                             </td>
                         </tr>
                     `;
                 });
                 tbody.innerHTML = html;
             } else {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Failed to load requests.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Failed to load requests.</td></tr>';
             }
         } catch (error) {
             console.error('Error fetching requests:', error);
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Connection error.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Connection error.</td></tr>';
         }
     }
 
 });
 
+
+
+    window.registerFromRequest = function(requestId) {
+        if (!window._onlineRequestsCache) return;
+        const request = window._onlineRequestsCache.find(r => r.id === requestId);
+        if (!request) return;
+
+        // Switch to register tab
+        const tabRegisterBtn = document.getElementById('tab-register');
+        if (tabRegisterBtn) {
+            tabRegisterBtn.click();
+        } else {
+            if (typeof switchTab === 'function') switchTab('register');
+        }
+
+        // Fill in the form fields
+        setTimeout(() => {
+            const nameInput = document.getElementById('patient-name');
+            const contactInput = document.getElementById('patient-contact');
+            const doctorSelect = document.getElementById('doctor');
+            const btnCancel = document.getElementById('btn-cancel');
+
+            // Clear form first
+            if (btnCancel) btnCancel.click();
+
+            if (nameInput) nameInput.value = request.name;
+            if (contactInput) contactInput.value = request.phone;
+            
+            if (doctorSelect && request.doctor) {
+                // The request.doctor might be ID or Name
+                for (let i = 0; i < doctorSelect.options.length; i++) {
+                    if (doctorSelect.options[i].value === request.doctor || 
+                        doctorSelect.options[i].text.includes(request.doctor)) {
+                        doctorSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // Optional: Store the request ID somewhere so when registration is done, we update the status
+            // For now, let's add a hidden field or a global variable
+            window._currentProcessingRequestId = requestId;
+        }, 100);
+    };

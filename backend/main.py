@@ -201,6 +201,18 @@ async def get_appointment_requests():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve requests: {str(e)}")
 
+@app.put("/api/appointment-requests/{request_id}")
+async def update_appointment_request(request_id: str, request: AppointmentRequest):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        request_data = request.model_dump()
+        doc_ref = db.collection("appointment_requests").document(request_id)
+        doc_ref.set(request_data)
+        return {"message": "Appointment request updated successfully", "id": request_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update request: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
