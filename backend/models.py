@@ -44,3 +44,10 @@ class Patient(BaseModel):
     guardian: GuardianDetails
     medical: MedicalDetails
     appointment: AppointmentDetails
+
+class AppointmentRequest(BaseModel):
+    name: str
+    phone: str
+    date: str
+    doctor: str
+    status: str = "pending"

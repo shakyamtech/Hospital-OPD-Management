@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
-from models import Patient, Doctor
+from models import Patient, Doctor, AppointmentRequest
 
 # Initialize FastAPI app
 app = FastAPI(title="OPD Connect API", description="API for OPD Hospital App")
@@ -172,6 +172,34 @@ async def delete_doctor(doctor_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete doctor: {str(e)}")
+
+@app.post("/api/appointment-requests")
+async def create_appointment_request(request: AppointmentRequest):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        request_data = request.model_dump()
+        doc_ref = db.collection("appointment_requests").document()
+        doc_ref.set(request_data)
+        return {"message": "Appointment request submitted successfully", "id": doc_ref.id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to submit request: {str(e)}")
+
+@app.get("/api/appointment-requests")
+async def get_appointment_requests():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        reqs_ref = db.collection("appointment_requests")
+        docs = reqs_ref.stream()
+        reqs_list = []
+        for doc in docs:
+            r = doc.to_dict()
+            r["id"] = doc.id
+            reqs_list.append(r)
+        return {"requests": reqs_list}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve requests: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

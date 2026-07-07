@@ -277,6 +277,10 @@
                         <span class="material-symbols-outlined">settings</span>
                         Settings
                     </button>
+                    <button class="tab-btn" id="tab-requests" style="display: none;">
+                        <span class="material-symbols-outlined">inbox</span>
+                        Online Requests
+                    </button>
                 </div>
 
                 <!-- Registration Section -->
@@ -650,6 +654,32 @@
                                 </tr>
                             </thead>
                             <tbody id="doctors-tbody">
+                                <!-- Data injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Online Requests Section -->
+                <div id="section-requests" class="tab-section">
+                    <header class="page-header">
+                        <div class="header-titles">
+                            <h1>Online Requests</h1>
+                            <p>Manage appointment requests from the public website.</p>
+                        </div>
+                    </header>
+                    <div class="glass-panel table-container" style="margin-top: 1rem;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Preferred Date</th>
+                                    <th>Requested Doctor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requests-tbody">
                                 <!-- Data injected by JS -->
                             </tbody>
                         </table>

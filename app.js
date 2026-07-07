@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionBilling = document.getElementById('section-billing');
     const sectionPharmacy = document.getElementById('section-pharmacy');
     const sectionSettings = document.getElementById('section-settings');
+    const sectionRequests = document.getElementById('section-requests');
+    const tabRequests = document.getElementById('tab-requests');
 
     // Modal
     const patientModal = document.getElementById('patient-modal');
@@ -121,11 +123,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (publicBookingForm) {
-        publicBookingForm.addEventListener('submit', (e) => {
+        publicBookingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (publicBookingModal) publicBookingModal.classList.remove('active');
-            publicBookingForm.reset();
-            alert("Your appointment request has been sent! We will contact you shortly to confirm the time.");
+            
+            const submitBtn = publicBookingForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+
+            const requestData = {
+                name: publicBookingForm.querySelector('input[type="text"]').value,
+                phone: publicBookingForm.querySelector('input[type="tel"]').value,
+                date: publicBookingForm.querySelector('input[type="date"]').value,
+                doctor: bookingDoctorSelect ? bookingDoctorSelect.value : "General",
+                status: "pending"
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/appointment-requests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (response.ok) {
+                    if (publicBookingModal) publicBookingModal.classList.remove('active');
+                    publicBookingForm.reset();
+                    alert("Your appointment request has been sent! We will contact you shortly to confirm the time.");
+                } else {
+                    alert("Failed to submit request. Please try again.");
+                }
+            } catch (error) {
+                console.error("Booking submission error:", error);
+                alert("Failed to connect to the server.");
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         });
     }
 
@@ -271,6 +305,13 @@ document.addEventListener('DOMContentLoaded', () => {
         tabSettings.addEventListener('click', () => {
             switchTab('settings');
             if (typeof fetchDoctors === 'function') fetchDoctors();
+        });
+    }
+
+    if (tabRequests) {
+        tabRequests.addEventListener('click', () => {
+            switchTab('requests');
+            fetchAppointmentRequests();
         });
     }
 
@@ -973,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Tab Switching ---
     function switchTab(tab) {
-        const tabs = ['register', 'directory', 'billing', 'pharmacy', 'settings'];
+        const tabs = ['register', 'directory', 'billing', 'pharmacy', 'settings', 'requests'];
         tabs.forEach(t => {
             const btn = document.getElementById(`tab-${t}`);
             const sec = document.getElementById(`section-${t}`);
@@ -1028,6 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabBilling) tabBilling.style.display = 'none';
             if (tabPharmacy) tabPharmacy.style.display = 'none';
             if (tabSettings) tabSettings.style.display = 'none';
+            if (tabRequests) tabRequests.style.display = 'none';
             switchTab('directory');
             loadPatients();
         } else if (role === 'pharmacy') {
@@ -1035,6 +1077,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabBilling) tabBilling.style.display = 'none';
             if (tabPharmacy) tabPharmacy.style.display = 'inline-flex';
             if (tabSettings) tabSettings.style.display = 'none';
+            if (tabRequests) tabRequests.style.display = 'none';
             switchTab('pharmacy');
             if (typeof loadPharmacy === 'function') loadPharmacy();
         } else if (role === 'cashier') {
@@ -1042,6 +1085,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabBilling) tabBilling.style.display = 'inline-flex';
             if (tabPharmacy) tabPharmacy.style.display = 'none';
             if (tabSettings) tabSettings.style.display = 'none';
+            if (tabRequests) tabRequests.style.display = 'none';
             switchTab('billing');
             if (typeof loadBilling === 'function') loadBilling();
         } else if (role === 'staff') {
@@ -1049,6 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabBilling) tabBilling.style.display = 'none';
             if (tabPharmacy) tabPharmacy.style.display = 'none';
             if (tabSettings) tabSettings.style.display = 'none';
+            if (tabRequests) tabRequests.style.display = 'inline-flex';
             switchTab('register');
         } else {
             // Admin sees all
@@ -1056,6 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabBilling) tabBilling.style.display = 'inline-flex';
             if (tabPharmacy) tabPharmacy.style.display = 'inline-flex';
             if (tabSettings) tabSettings.style.display = 'inline-flex';
+            if (tabRequests) tabRequests.style.display = 'inline-flex';
             switchTab('register');
         }
     }
@@ -1144,16 +1190,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    function formatDoctor(value) {
-        if (!value) return '-';
-        const doc = doctorsCache.find(d => d.id === value);
-        if (doc) {
-            return `Dr. ${doc.name} (${doc.specialization})`;
-        }
-        const map = {
-            'dr-smith': 'Dr. Smith (Cardiology)',
-            'dr-jane': 'Dr. Jane (General)',
-            'dr-patel': 'Dr. Patel (Orthopedics)',
         };
         return map[value] || value || '-';
     }
@@ -1746,6 +1782,54 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.print();
     };
+
+    async function fetchAppointmentRequests() {
+        const tbody = document.getElementById('requests-tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading requests...</td></tr>';
+        
+        try {
+            const response = await fetch(`${API_BASE}/appointment-requests`);
+            const data = await response.json();
+            
+            if (response.ok) {
+                const requests = data.requests || [];
+                if (requests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No online requests currently.</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                requests.forEach(r => {
+                    // find doctor name to display
+                    let doctorName = r.doctor;
+                    const docObj = doctorsCache.find(d => d.id === r.doctor);
+                    if (docObj) doctorName = docObj.name;
+
+                    html += `
+                        <tr>
+                            <td><strong>${r.name}</strong></td>
+                            <td>${r.phone}</td>
+                            <td>${r.date}</td>
+                            <td>${doctorName}</td>
+                            <td>
+                                <span class="status-badge status-pending" style="background: var(--warning); color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                    ${r.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Failed to load requests.</td></tr>';
+            }
+        } catch (error) {
+            console.error('Error fetching requests:', error);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Connection error.</td></tr>';
+        }
+    }
 
 });
 
