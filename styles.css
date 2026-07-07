@@ -1603,7 +1603,8 @@ body {
 }
 
 .btn-large {
-    padding: 1rem 2rem;
+    height: 56px;
+    padding: 0 2rem;
     font-size: 1.1rem;
     border-radius: 2rem;
     display: flex;
