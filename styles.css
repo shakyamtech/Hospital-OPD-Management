@@ -1627,6 +1627,16 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+.btn-large.btn-secondary {
+    background: var(--secondary);
+    color: white;
+}
+.btn-large.btn-secondary:hover {
+    background: #08211e;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
 .btn-outline {
     background: transparent;
     border: 2px solid white;
