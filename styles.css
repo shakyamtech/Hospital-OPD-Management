@@ -1598,7 +1598,6 @@ body {
     position: relative;
     z-index: 3;
     max-width: 650px;
-    margin-left: -1.5rem;
 }
 
 .hero-badge {
