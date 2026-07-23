@@ -1120,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (kpiConsult) kpiConsult.style.display = (role === 'pharmacy' || role === 'doctor') ? 'none' : 'flex';
         if (kpiPharmacy) kpiPharmacy.style.display = (role === 'doctor') ? 'none' : 'flex';
-        if (kpiPending) kpiPending.style.display = (role === 'pharmacy' || role === 'cashier') ? 'none' : 'flex';
+        if (kpiPending) kpiPending.style.display = (role === 'pharmacy' || role === 'cashier' || role === 'doctor') ? 'none' : 'flex';
 
         const totalPatientsElem = document.getElementById('ov-total-patients');
         const activeDoctorsElem = document.getElementById('ov-active-doctors');
