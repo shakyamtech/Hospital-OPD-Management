@@ -99,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginLogo) {
         loginLogo.addEventListener('click', () => {
             showLanding();
+            if (window.location.hash) {
+                window.history.pushState('', document.title, window.location.pathname + window.location.search);
+            }
         });
     }
 
@@ -173,16 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-            }
-        });
-    }
-
-    const loginLogo = document.getElementById('login-logo');
-    if (loginLogo) {
-        loginLogo.addEventListener('click', () => {
-            showLanding();
-            if (window.location.hash) {
-                window.history.pushState('', document.title, window.location.pathname + window.location.search);
             }
         });
     }
