@@ -47,8 +47,14 @@ async def register_patient(patient: Patient):
         # Convert Pydantic model to dictionary
         patient_data = patient.model_dump()
         
-        # Save to 'patients' collection
-        doc_ref = db.collection("patients").document()
+        # Save to 'patients' collection with custom formatted OPD ID (e.g. OPD-2026-0001)
+        from datetime import datetime
+        year = datetime.now().year
+        patients_ref = db.collection("patients")
+        count = len(list(patients_ref.stream())) + 1
+        opd_id = f"OPD-{year}-{count:04d}"
+        
+        doc_ref = patients_ref.document(opd_id)
         doc_ref.set(patient_data)
         
         return {"message": "Patient registered successfully", "id": doc_ref.id}

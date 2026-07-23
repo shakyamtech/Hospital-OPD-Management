@@ -609,7 +609,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr>
-                    <td><strong>${escapeHtml(name)}</strong></td>
+                    <td>
+                        <strong>${escapeHtml(name)}</strong>
+                        <div style="font-size: 0.76rem; color: #0d9488; font-weight: 600;">${escapeHtml(formatPatientId(p))}</div>
+                    </td>
                     <td>${age}</td>
                     <td>${escapeHtml(doctor)}</td>
                     <td>${escapeHtml(time)}</td>
@@ -634,6 +637,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
+    function formatPatientId(patient) {
+        if (!patient) return '—';
+        const rawId = typeof patient === 'string' ? patient : (patient.id || '');
+        if (!rawId) return '—';
+        
+        if (rawId.startsWith('OPD-')) return rawId;
+
+        let hash = 0;
+        for (let i = 0; i < rawId.length; i++) {
+            hash = (hash << 5) - hash + rawId.charCodeAt(i);
+            hash |= 0;
+        }
+        const cleanNum = String((Math.abs(hash) % 9000) + 1000);
+        return `OPD-2026-${cleanNum}`;
+    }
+
     // --- View Patient Modal ---
     function viewPatient(patientParam) {
         if (!patientParam) return;
@@ -656,6 +675,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="material-symbols-outlined">person</span> Personal Details
                 </div>
                 <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Patient ID</div>
+                        <div class="detail-value"><strong style="color: #0d9488;">${escapeHtml(formatPatientId(patient))}</strong></div>
+                    </div>
                     <div class="detail-item">
                         <div class="detail-label">Full Name</div>
                         <div class="detail-value">${escapeHtml(p.name || '—')}</div>
@@ -1112,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3>Administrative Details</h3>
                         <div class="print-meta-row">
                             <span class="print-meta-label">Patient ID:</span>
-                            <span><strong>${escapeHtml(patient.id || '—')}</strong></span>
+                            <span><strong>${escapeHtml(formatPatientId(patient))}</strong></span>
                         </div>
                         <div class="print-meta-row">
                             <span class="print-meta-label">Date Generated:</span>
