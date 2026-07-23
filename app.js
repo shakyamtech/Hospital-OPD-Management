@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const directoryTbody = document.getElementById('directory-tbody');
 
     // Tabs
+    const tabDashboardOverview = document.getElementById('tab-dashboard-overview');
     const tabRegister = document.getElementById('tab-register');
     const tabDirectory = document.getElementById('tab-directory');
     const tabBilling = document.getElementById('tab-billing');
@@ -1254,7 +1255,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sidebar) sidebar.classList.remove('active');
     }
 
-    const tabDashboardOverview = document.getElementById('tab-dashboard-overview');
     if (tabDashboardOverview) {
         tabDashboardOverview.addEventListener('click', () => {
             switchTab('dashboard-overview');
