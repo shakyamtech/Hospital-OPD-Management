@@ -1101,6 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadDashboardOverview() {
         const role = localStorage.getItem('opd_role') || 'admin';
+        const doctorId = localStorage.getItem('opd_doctor_id') || '';
 
         // Filter Quick Action Buttons based on logged in role
         const qaRegister = document.getElementById('qa-btn-register');
@@ -1130,7 +1131,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const recentTbody = document.getElementById('ov-recent-tbody');
         const doctorsSummary = document.getElementById('ov-doctors-summary');
 
-        if (totalPatientsElem) totalPatientsElem.textContent = patientsCache.length;
+        let overviewPatients = patientsCache;
+        if (role === 'doctor' && doctorId) {
+            overviewPatients = patientsCache.filter(p => p.appointment?.doctor === doctorId);
+        }
+
+        if (totalPatientsElem) totalPatientsElem.textContent = overviewPatients.length;
         if (activeDoctorsElem) activeDoctorsElem.textContent = doctorsCache.length;
 
         // Calculate Consultation Revenue
@@ -1171,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Recent Patients Admissions Table (Latest 5)
         if (recentTbody) {
-            const recent = patientsCache.slice(-5).reverse();
+            const recent = overviewPatients.slice(-5).reverse();
             if (recent.length === 0) {
                 recentTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 1.5rem;">No recent admissions.</td></tr>`;
             } else {
