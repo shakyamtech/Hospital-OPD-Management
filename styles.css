@@ -2307,9 +2307,53 @@ body {
         display: inline-flex;
     }
 
-    .dashboard-content {
-        padding: 1rem;
+/* Overview Layout & Quick Actions */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--secondary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+}
+
+.quick-action-btn:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+}
+
+.quick-action-btn .material-symbols-outlined {
+    font-size: 1.4rem;
+}
+
+.overview-grid {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+    .overview-grid {
+        flex-direction: column;
     }
 }
+
 
 

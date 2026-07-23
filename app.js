@@ -1058,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Tab Switching ---
     function switchTab(tab) {
-        const tabs = ['register', 'directory', 'billing', 'pharmacy', 'settings', 'requests'];
+        const tabs = ['dashboard-overview', 'register', 'directory', 'billing', 'pharmacy', 'settings', 'requests'];
         tabs.forEach(t => {
             const btn = document.getElementById(`tab-${t}`);
             const sec = document.getElementById(`section-${t}`);
@@ -1075,6 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const titleElem = document.getElementById('current-view-title');
         if (titleElem) {
             const titleMap = {
+                'dashboard-overview': 'Executive Dashboard Overview',
                 'register': 'New Patient Registration',
                 'directory': 'Patient Directory',
                 'billing': 'Billing & Payments',
@@ -1088,6 +1089,107 @@ document.addEventListener('DOMContentLoaded', () => {
         // Close mobile drawer on navigation
         const sidebar = document.getElementById('dashboard-sidebar');
         if (sidebar) sidebar.classList.remove('active');
+    }
+
+    const tabDashboardOverview = document.getElementById('tab-dashboard-overview');
+    if (tabDashboardOverview) {
+        tabDashboardOverview.addEventListener('click', () => {
+            switchTab('dashboard-overview');
+            loadDashboardOverview();
+        });
+    }
+
+    async function loadDashboardOverview() {
+        const totalPatientsElem = document.getElementById('ov-total-patients');
+        const activeDoctorsElem = document.getElementById('ov-active-doctors');
+        const consultRevElem = document.getElementById('ov-consult-revenue');
+        const pharmacySalesElem = document.getElementById('ov-pharmacy-sales');
+        const pendingReqElem = document.getElementById('ov-pending-requests');
+        const recentTbody = document.getElementById('ov-recent-tbody');
+        const doctorsSummary = document.getElementById('ov-doctors-summary');
+
+        if (totalPatientsElem) totalPatientsElem.textContent = patientsCache.length;
+        if (activeDoctorsElem) activeDoctorsElem.textContent = doctorsCache.length;
+
+        // Calculate Consultation Revenue
+        let consultTotal = 0;
+        patientsCache.forEach(p => {
+            if (p.appointment?.paymentStatus === 'paid') {
+                consultTotal += parseFloat(p.appointment.charges || 0);
+            }
+        });
+        if (consultRevElem) consultRevElem.textContent = `Rs ${consultTotal.toFixed(2)}`;
+
+        // Calculate Pharmacy Revenue & Fetch Sales Logs
+        try {
+            const response = await fetch(`${API_BASE}/pharmacy/sales`);
+            if (response.ok) {
+                const data = await response.json();
+                const sales = data.sales || [];
+                let pharmTotal = 0;
+                sales.forEach(s => pharmTotal += parseFloat(s.grand_total || 0));
+                if (pharmacySalesElem) pharmacySalesElem.textContent = `Rs ${pharmTotal.toFixed(2)}`;
+            }
+        } catch (err) {
+            console.warn('Pharmacy sales fetch error:', err);
+        }
+
+        // Pending Requests
+        try {
+            const response = await fetch(`${API_BASE}/appointment-requests`);
+            if (response.ok) {
+                const data = await response.json();
+                const reqs = data.requests || [];
+                const pending = reqs.filter(r => r.status === 'pending');
+                if (pendingReqElem) pendingReqElem.textContent = pending.length;
+            }
+        } catch (err) {
+            console.warn('Requests fetch error:', err);
+        }
+
+        // Recent Patients Admissions Table (Latest 5)
+        if (recentTbody) {
+            const recent = patientsCache.slice(-5).reverse();
+            if (recent.length === 0) {
+                recentTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 1.5rem;">No recent admissions.</td></tr>`;
+            } else {
+                recentTbody.innerHTML = recent.map(p => {
+                    const name = escapeHtml(p.personal?.name || '—');
+                    const doctor = escapeHtml(formatDoctor(p.appointment?.doctor));
+                    const block = escapeHtml(p.appointment?.blockWard || '—');
+                    const payStatus = p.appointment?.paymentStatus || 'pending';
+                    const badgeClass = payStatus === 'paid' ? 'badge-primary' : 'badge-warning';
+                    return `
+                        <tr>
+                            <td><strong>${name}</strong></td>
+                            <td>${doctor}</td>
+                            <td>${block}</td>
+                            <td><span class="badge ${badgeClass}">${payStatus}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // On-Duty Doctors Summary List
+        if (doctorsSummary) {
+            if (doctorsCache.length === 0) {
+                doctorsSummary.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No doctors registered.</p>`;
+            } else {
+                doctorsSummary.innerHTML = doctorsCache.map(d => `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--input-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span class="material-symbols-outlined" style="color: var(--primary);">stethoscope</span>
+                            <div>
+                                <strong style="font-size: 0.9rem; color: var(--secondary);">${escapeHtml(d.name)}</strong>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(d.specialization)}</div>
+                            </div>
+                        </div>
+                        <span class="badge badge-primary" style="font-size: 0.75rem;">On Duty</span>
+                    </div>
+                `).join('');
+            }
+        }
     }
 
     // Mobile Sidebar Toggle
@@ -1182,12 +1284,15 @@ document.addEventListener('DOMContentLoaded', () => {
             switchTab('register');
         } else {
             // Admin sees all
+            const tabDashboardOverview = document.getElementById('tab-dashboard-overview');
+            if (tabDashboardOverview) tabDashboardOverview.style.display = 'inline-flex';
             if (tabRegister) tabRegister.style.display = 'inline-flex';
             if (tabBilling) tabBilling.style.display = 'inline-flex';
             if (tabPharmacy) tabPharmacy.style.display = 'inline-flex';
             if (tabSettings) tabSettings.style.display = 'inline-flex';
             if (tabRequests) tabRequests.style.display = 'inline-flex';
-            switchTab('register');
+            switchTab('dashboard-overview');
+            loadPatients().then(() => loadDashboardOverview());
         }
     }
 
