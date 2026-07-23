@@ -1642,21 +1642,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
     function formatDoctor(value) {
-        if (!value) return '';
+        if (!value) return '—';
         const doc = doctorsCache.find(d => d.id === value);
         if (doc) {
             let cleanName = (doc.name || '').replace(/^(Dr\.?\s*)+/i, '').trim();
             return `Dr. ${cleanName} (${doc.specialization})`;
         }
         
-        // Fallback for older hardcoded data
+        // Fallback for older hardcoded slugs
         const map = {
             'dr-smith': 'Dr. Smith (Cardiology)',
             'dr-jane': 'Dr. Jane (General)',
             'dr-patel': 'Dr. Patel (Orthopedics)',
         };
-        let formatted = map[value] || value || '-';
-        let cleanVal = formatted.replace(/^(Dr\.?\s*)+/i, '').trim();
+        if (map[value]) return map[value];
+
+        // If value looks like a Firestore ID (not a name), show as Unknown
+        if (/^[a-zA-Z0-9]{15,}$/.test(value)) {
+            return 'Unknown Doctor (Removed)';
+        }
+
+        // Otherwise it might be a plain name string
+        let cleanVal = value.replace(/^(Dr\.?\s*)+/i, '').trim();
         return `Dr. ${cleanVal}`;
     }
 
