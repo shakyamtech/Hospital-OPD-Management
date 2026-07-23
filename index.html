@@ -378,6 +378,14 @@
                                 <span class="material-symbols-outlined">person_add</span>
                                 <span>Add Doctor</span>
                             </button>
+                            <button class="quick-action-btn" id="qa-btn-doc-patients" onclick="if(document.getElementById('tab-directory')) document.getElementById('tab-directory').click()" style="display: none;">
+                                <span class="material-symbols-outlined">groups</span>
+                                <span>My Patient Directory</span>
+                            </button>
+                            <button class="quick-action-btn" id="qa-btn-doc-prescribe" onclick="if(document.getElementById('tab-directory')) document.getElementById('tab-directory').click()" style="display: none;">
+                                <span class="material-symbols-outlined">clinical_notes</span>
+                                <span>Prescribe & Diagnose</span>
+                            </button>
                         </div>
                     </div>
 
@@ -1173,6 +1181,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=150"></script>
+    <script src="app.js?v=160"></script>
 </body>
 </html>

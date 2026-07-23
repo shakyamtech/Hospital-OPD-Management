@@ -1108,11 +1108,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const qaBilling = document.getElementById('qa-btn-billing');
         const qaPharmacy = document.getElementById('qa-btn-pharmacy');
         const qaDoctor = document.getElementById('qa-btn-doctor');
+        const qaDocPatients = document.getElementById('qa-btn-doc-patients');
+        const qaDocPrescribe = document.getElementById('qa-btn-doc-prescribe');
 
         if (qaRegister) qaRegister.style.display = (role === 'admin' || role === 'staff') ? 'inline-flex' : 'none';
         if (qaBilling) qaBilling.style.display = (role === 'admin' || role === 'cashier' || role === 'staff') ? 'inline-flex' : 'none';
         if (qaPharmacy) qaPharmacy.style.display = (role === 'admin' || role === 'pharmacy') ? 'inline-flex' : 'none';
         if (qaDoctor) qaDoctor.style.display = (role === 'admin') ? 'inline-flex' : 'none';
+        if (qaDocPatients) qaDocPatients.style.display = (role === 'doctor') ? 'inline-flex' : 'none';
+        if (qaDocPrescribe) qaDocPrescribe.style.display = (role === 'doctor') ? 'inline-flex' : 'none';
 
         // Filter KPI Stat Cards based on logged in role
         const kpiConsult = document.getElementById('kpi-card-consult-revenue');
