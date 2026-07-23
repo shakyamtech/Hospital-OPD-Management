@@ -2068,10 +2068,13 @@ body {
 
 /* ==================== DASHBOARD LEFT SIDEBAR LAYOUT ==================== */
 .dashboard-layout {
-    display: flex;
     min-height: 100vh;
     background-color: var(--background);
     overflow-x: hidden;
+}
+
+.dashboard-layout.active {
+    display: flex;
 }
 
 /* Sidebar Container */
