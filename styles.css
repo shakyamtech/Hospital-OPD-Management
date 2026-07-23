@@ -2098,12 +2098,6 @@ body {
     padding: 0.5rem 0.75rem 1.5rem 0.75rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     cursor: pointer;
-    transition: transform 0.25s ease, opacity 0.25s ease;
-}
-
-.sidebar-brand:hover {
-    opacity: 0.95;
-    transform: translateY(-1px);
 }
 
 .sidebar-brand .logo-icon {
@@ -2112,13 +2106,13 @@ body {
     background: rgba(13, 148, 136, 0.15);
     padding: 0.4rem;
     border-radius: var(--radius-sm);
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
 }
 
-.sidebar-brand:hover .logo-icon {
-    background: rgba(13, 148, 136, 0.3);
-    box-shadow: 0 0 14px rgba(13, 148, 136, 0.45);
-    transform: scale(1.08);
+.sidebar-brand .logo-icon:hover {
+    background: rgba(13, 148, 136, 0.35);
+    box-shadow: 0 0 16px rgba(13, 148, 136, 0.5);
+    transform: scale(1.1);
 }
 
 .sidebar-brand h2 {
