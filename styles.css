@@ -2445,5 +2445,29 @@ body {
     }
 }
 
+/* Doctor List Scrollable Container */
+#ov-doctors-summary {
+    max-height: 440px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+#ov-doctors-summary::-webkit-scrollbar {
+    width: 6px;
+}
+
+#ov-doctors-summary::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#ov-doctors-summary::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+
+#ov-doctors-summary::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
 
 
