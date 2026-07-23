@@ -88,6 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const sidebarLogo = document.getElementById('sidebar-logo');
+    if (sidebarLogo) {
+        sidebarLogo.addEventListener('click', () => {
+            showLanding();
+        });
+    }
+
+    const loginLogo = document.getElementById('login-logo');
+    if (loginLogo) {
+        loginLogo.addEventListener('click', () => {
+            showLanding();
+        });
+    }
+
     const publicBookingModal = document.getElementById('public-booking-modal');
     const publicBookingCloseBtn = document.getElementById('public-booking-close-btn');
     const publicBookingForm = document.getElementById('public-booking-form');
