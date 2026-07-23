@@ -1119,8 +1119,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const kpiPharmacy = document.getElementById('kpi-card-pharmacy-sales');
 
         if (kpiConsult) kpiConsult.style.display = (role === 'pharmacy') ? 'none' : 'flex';
+        if (kpiPharmacy) kpiPharmacy.style.display = 'flex';
         if (kpiPending) kpiPending.style.display = (role === 'pharmacy' || role === 'cashier') ? 'none' : 'flex';
-        if (kpiPharmacy) kpiPharmacy.style.display = (role === 'cashier') ? 'none' : 'flex';
 
         const totalPatientsElem = document.getElementById('ov-total-patients');
         const activeDoctorsElem = document.getElementById('ov-active-doctors');
