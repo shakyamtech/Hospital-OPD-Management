@@ -2495,12 +2495,17 @@ body {
 }
 
 @media print {
-    body * {
-        visibility: hidden !important;
+    html, body {
+        background: #ffffff !important;
+        overflow: visible !important;
+        height: auto !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
-    #print-section, #print-section * {
-        visibility: visible !important;
+    body > *:not(#print-section) {
+        display: none !important;
     }
 
     #print-section {
@@ -2513,6 +2518,12 @@ body {
         padding: 24px !important;
         background: #ffffff !important;
         color: #0f172a !important;
+        visibility: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    #print-section * {
+        visibility: visible !important;
     }
 
     .print-header {
