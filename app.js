@@ -65,12 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initialize ---
     const isAuthenticated = localStorage.getItem('opd_auth') === 'true';
     fetchDoctors().then(() => {
-        if (window.location.hash === '#admin' || window.location.hash === '#login' || window.location.search.includes('admin')) {
-            if (isAuthenticated) {
-                showDashboard();
-            } else {
-                showLogin();
-            }
+        if (isAuthenticated) {
+            showDashboard();
+        } else if (window.location.hash === '#admin' || window.location.hash === '#login' || window.location.search.includes('admin')) {
+            showLogin();
         } else {
             showLanding();
         }
