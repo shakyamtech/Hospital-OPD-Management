@@ -1422,12 +1422,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         ? `<span class="badge badge-primary" style="font-size: 0.75rem;">On Duty (${patientCount} ${patientCount === 1 ? 'Patient' : 'Patients'})</span>`
                         : `<span class="badge" style="font-size: 0.75rem; background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid #cbd5e1;">Off Duty</span>`;
 
+                    const cleanDocName = (d.name || '').replace(/^(Dr\.?\s*)+/i, 'Dr. ');
                     return `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--input-bg); border-radius: var(--radius-sm); border: 1px solid var(--border); ${!isOnDuty ? 'opacity: 0.75;' : ''}">
                             <div style="display: flex; align-items: center; gap: 0.6rem;">
                                 <span class="material-symbols-outlined" style="color: ${isOnDuty ? 'var(--primary)' : '#94a3b8'};">stethoscope</span>
                                 <div>
-                                    <strong style="font-size: 0.9rem; color: var(--secondary);">${escapeHtml(d.name)}</strong>
+                                    <strong style="font-size: 0.9rem; color: var(--secondary);">${escapeHtml(cleanDocName)}</strong>
                                     <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(d.specialization)}</div>
                                 </div>
                             </div>
@@ -1635,7 +1636,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!value) return '';
         const doc = doctorsCache.find(d => d.id === value);
         if (doc) {
-            return `Dr. ${doc.name} (${doc.specialization})`;
+            let cleanName = (doc.name || '').replace(/^(Dr\.?\s*)+/i, '').trim();
+            return `Dr. ${cleanName} (${doc.specialization})`;
         }
         
         // Fallback for older hardcoded data
@@ -1644,7 +1646,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'dr-jane': 'Dr. Jane (General)',
             'dr-patel': 'Dr. Patel (Orthopedics)',
         };
-        return map[value] || value || '-';
+        let formatted = map[value] || value || '-';
+        let cleanVal = formatted.replace(/^(Dr\.?\s*)+/i, '').trim();
+        return `Dr. ${cleanVal}`;
     }
 
     function escapeHtml(str) {
