@@ -2148,7 +2148,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 chip.style.color = '';
                 chip.style.borderColor = '';
             }
-
             // Update hidden input
             const selectedTests = Array.from(document.querySelectorAll('.test-chip-btn.selected'))
                 .map(btn => btn.getAttribute('data-test'));
@@ -2161,18 +2160,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Pharmacy Printing ---
     window.printPharmacyInvoice = function(patient, pharmacyBill) {
         if (!patient || !pharmacyBill) return;
-        
-        const printSection = document.getElementById('print-section');
-        if (!printSection) return;
-        
+
         const p = patient.personal || {};
         const a = patient.appointment || {};
-        
+
         const today = new Date().toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric',
             hour: '2-digit', minute: '2-digit'
         });
-        
+
         let totalAmount = 0;
         const rows = pharmacyBill.map((med, index) => {
             const rowTotal = med.qty * med.rate;
@@ -2187,85 +2183,228 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
         }).join('');
-        
-        printSection.innerHTML = `
-            <div class="print-header">
-                <div class="print-logo-section">
-                    <span class="material-symbols-outlined print-logo-icon">local_hospital</span>
+
+        const invoiceHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Pharmacy Invoice - ${escapeHtml(p.name || 'Patient')}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                <style>
+                    * { box-sizing: border-box; }
+                    body {
+                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        padding: 30px;
+                        color: #0f172a;
+                        background: #ffffff;
+                        margin: 0;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .print-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        border-bottom: 2.5px solid #0f172a;
+                        padding-bottom: 16px;
+                        margin-bottom: 24px;
+                    }
+                    .print-hospital-name {
+                        font-size: 22px;
+                        font-weight: 700;
+                        margin: 0;
+                        color: #0d9488;
+                        letter-spacing: -0.5px;
+                    }
+                    .print-hospital-sub {
+                        font-size: 11px;
+                        color: #64748b;
+                        margin: 3px 0 0 0;
+                    }
+                    .print-title { text-align: right; }
+                    .print-title h1 {
+                        font-size: 24px;
+                        font-weight: 800;
+                        margin: 0;
+                        color: #0f172a;
+                        letter-spacing: 0.5px;
+                    }
+                    .print-title p {
+                        font-size: 11px;
+                        color: #64748b;
+                        margin: 3px 0 0 0;
+                    }
+                    .print-metadata-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 20px;
+                        margin-bottom: 24px;
+                        border: 1px solid #e2e8f0;
+                        padding: 16px 20px;
+                        border-radius: 8px;
+                        background: #f8fafc;
+                    }
+                    .print-meta-block h3 {
+                        font-size: 12px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        color: #0f172a;
+                        border-bottom: 1px solid #cbd5e1;
+                        padding-bottom: 4px;
+                        margin: 0 0 10px 0;
+                    }
+                    .print-meta-row {
+                        font-size: 12px;
+                        margin-bottom: 6px;
+                        color: #334155;
+                    }
+                    .print-meta-label {
+                        font-weight: 600;
+                        display: inline-block;
+                        width: 140px;
+                        color: #64748b;
+                    }
+                    .print-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 24px;
+                    }
+                    .print-table th, .print-table td {
+                        border: 1px solid #e2e8f0;
+                        padding: 10px 12px;
+                        font-size: 12px;
+                        text-align: left;
+                    }
+                    .print-table th {
+                        background-color: #f1f5f9;
+                        font-weight: 700;
+                        color: #0f172a;
+                    }
+                    .print-footer {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 60px;
+                        padding-top: 10px;
+                    }
+                    .print-signature-space {
+                        width: 220px;
+                        text-align: center;
+                    }
+                    .print-signature-line {
+                        border-top: 1.5px solid #0f172a;
+                        padding-top: 6px;
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #0f172a;
+                    }
+                    .print-sys-info {
+                        margin-top: 40px;
+                        text-align: center;
+                        font-size: 10px;
+                        color: #94a3b8;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-header">
                     <div>
                         <h2 class="print-hospital-name">OPD CONNECT HOSPITAL</h2>
                         <p class="print-hospital-sub">123 Healthway Avenue, Medical City | Phone: +977-1-4455667</p>
                     </div>
-                </div>
-                <div class="print-title">
-                    <h1>PHARMACY INVOICE</h1>
-                    <p>Cash Receipt</p>
-                </div>
-            </div>
-            
-            <div class="print-metadata-grid">
-                <div class="print-meta-block">
-                    <h3>Patient Details</h3>
-                    <div class="print-meta-row">
-                        <span class="print-meta-label">Patient Name:</span>
-                        <span>${escapeHtml(p.name || '-')}</span>
-                    </div>
-                    <div class="print-meta-row">
-                        <span class="print-meta-label">Age / Contact:</span>
-                        <span>${p.age || '-'} / ${escapeHtml(p.contact || '-')}</span>
+                    <div class="print-title">
+                        <h1>PHARMACY INVOICE</h1>
+                        <p>Cash Receipt</p>
                     </div>
                 </div>
-                
-                <div class="print-meta-block">
-                    <h3>Invoice Details</h3>
-                    <div class="print-meta-row">
-                        <span class="print-meta-label">Patient ID:</span>
-                        <span><strong>${escapeHtml(patient.id || '-')}</strong></span>
+
+                <div class="print-metadata-grid">
+                    <div class="print-meta-block">
+                        <h3>Patient Details</h3>
+                        <div class="print-meta-row">
+                            <span class="print-meta-label">Patient Name:</span>
+                            <span><strong>${escapeHtml(p.name || '—')}</strong></span>
+                        </div>
+                        <div class="print-meta-row">
+                            <span class="print-meta-label">Age / Contact:</span>
+                            <span>${p.age || '—'} / ${escapeHtml(p.contact || '—')}</span>
+                        </div>
                     </div>
-                    <div class="print-meta-row">
-                        <span class="print-meta-label">Date Generated:</span>
-                        <span>${today}</span>
-                    </div>
-                    <div class="print-meta-row">
-                        <span class="print-meta-label">Prescribing Doctor:</span>
-                        <span>${escapeHtml(formatDoctor(a.doctor))}</span>
+
+                    <div class="print-meta-block">
+                        <h3>Invoice Details</h3>
+                        <div class="print-meta-row">
+                            <span class="print-meta-label">Patient ID:</span>
+                            <span><strong>${escapeHtml(patient.id || '—')}</strong></span>
+                        </div>
+                        <div class="print-meta-row">
+                            <span class="print-meta-label">Date Generated:</span>
+                            <span>${today}</span>
+                        </div>
+                        <div class="print-meta-row">
+                            <span class="print-meta-label">Prescribing Doctor:</span>
+                            <span>${escapeHtml(formatDoctor(a.doctor))}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <table class="print-table">
-                <thead>
-                    <tr>
-                        <th style="width: 10%;">S.N.</th>
-                        <th style="width: 45%;">Medicine Name</th>
-                        <th style="width: 15%;">Qty</th>
-                        <th style="width: 15%; text-align: right;">Rate</th>
-                        <th style="width: 15%; text-align: right;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rows}
-                    <tr>
-                        <td colspan="4" style="text-align: right; font-weight: bold;">Grand Total:</td>
-                        <td style="text-align: right; font-weight: bold; font-size: 1.1em;">Rs ${parseFloat(totalAmount).toFixed(2)}</td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <div class="print-footer">
-                <div class="print-signature-space">
-                    <div class="print-signature-line">Authorized Signatory</div>
+
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">S.N.</th>
+                            <th style="width: 45%;">Medicine Name</th>
+                            <th style="width: 15%;">Qty</th>
+                            <th style="width: 15%; text-align: right;">Rate</th>
+                            <th style="width: 15%; text-align: right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                        <tr>
+                            <td colspan="4" style="text-align: right; font-weight: bold;">Grand Total:</td>
+                            <td style="text-align: right; font-weight: bold; font-size: 1.1em;">Rs ${parseFloat(totalAmount).toFixed(2)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="print-footer">
+                    <div class="print-signature-space">
+                        <div class="print-signature-line">Authorized Signatory</div>
+                    </div>
+                    <div class="print-signature-space">
+                        <div class="print-signature-line">Dispensing Pharmacist</div>
+                    </div>
                 </div>
-                <div class="print-signature-space">
-                    <div class="print-signature-line">Dispensing Pharmacist</div>
+
+                <div class="print-sys-info">
+                    This slip is generated electronically. Powered by OPD Connect.
                 </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #7f8c8d;">
-                This slip is generated electronically. Powered by OPD Connect.
-            </div>
+            </body>
+            </html>
         `;
-        
-        window.print();
+
+        let iframe = document.getElementById('print-pharmacy-iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'print-pharmacy-iframe';
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+        }
+
+        const iframeDoc = iframe.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(invoiceHtml);
+        iframeDoc.close();
+
+        setTimeout(() => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        }, 250);
     };
 
     // --- Pharmacy Sub-Tabs & Inventory Management ---
