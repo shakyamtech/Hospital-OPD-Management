@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionRequests = document.getElementById('section-requests');
     const tabRequests = document.getElementById('tab-requests');
 
+    // Pharmacy Sub-Tabs
+    const subtabInventory = document.getElementById('subtab-pharmacy-inventory');
+    const subtabPrescriptions = document.getElementById('subtab-pharmacy-prescriptions');
+    const subtabSales = document.getElementById('subtab-pharmacy-sales');
+    const viewInventory = document.getElementById('pharmacy-view-inventory');
+    const viewPrescriptions = document.getElementById('pharmacy-view-prescriptions');
+    const viewSales = document.getElementById('pharmacy-view-sales');
+
     // Modal
     const patientModal = document.getElementById('patient-modal');
     const modalBody = document.getElementById('modal-body');
@@ -2262,14 +2270,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Pharmacy Sub-Tabs & Inventory Management ---
     let medicinesCache = [];
-
-    const subtabInventory = document.getElementById('subtab-pharmacy-inventory');
-    const subtabPrescriptions = document.getElementById('subtab-pharmacy-prescriptions');
-    const subtabSales = document.getElementById('subtab-pharmacy-sales');
-
-    const viewInventory = document.getElementById('pharmacy-view-inventory');
-    const viewPrescriptions = document.getElementById('pharmacy-view-prescriptions');
-    const viewSales = document.getElementById('pharmacy-view-sales');
 
     if (subtabInventory && subtabPrescriptions && subtabSales) {
         subtabInventory.addEventListener('click', () => switchPharmacySubtab('inventory'));
