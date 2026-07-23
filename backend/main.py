@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
-from models import Patient, Doctor, AppointmentRequest
+from models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest
 
 # Initialize FastAPI app
 app = FastAPI(title="OPD Connect API", description="API for OPD Hospital App")
@@ -213,6 +213,149 @@ async def update_appointment_request(request_id: str, request: AppointmentReques
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update request: {str(e)}")
 
+# ================= PHARMACY INVENTORY & SALES ENDPOINTS =================
+
+@app.get("/api/pharmacy/medicines")
+async def get_medicines():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        meds_ref = db.collection("medicines")
+        docs = meds_ref.stream()
+        medicines_list = []
+        for doc in docs:
+            m = doc.to_dict()
+            m["id"] = doc.id
+            medicines_list.append(m)
+        return {"medicines": medicines_list}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve medicines: {str(e)}")
+
+@app.post("/api/pharmacy/medicines")
+async def add_medicine(med: Medicine):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        med_data = med.model_dump()
+        doc_ref = db.collection("medicines").document()
+        doc_ref.set(med_data)
+        return {"message": "Medicine added successfully", "id": doc_ref.id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add medicine: {str(e)}")
+
+@app.put("/api/pharmacy/medicines/{medicine_id}")
+async def update_medicine(medicine_id: str, med: Medicine):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        med_data = med.model_dump()
+        doc_ref = db.collection("medicines").document(medicine_id)
+        if not doc_ref.get().exists:
+            raise HTTPException(status_code=404, detail="Medicine not found.")
+        doc_ref.set(med_data)
+        return {"message": "Medicine updated successfully", "id": medicine_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update medicine: {str(e)}")
+
+@app.delete("/api/pharmacy/medicines/{medicine_id}")
+async def delete_medicine(medicine_id: str):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        doc_ref = db.collection("medicines").document(medicine_id)
+        if not doc_ref.get().exists:
+            raise HTTPException(status_code=404, detail="Medicine not found.")
+        doc_ref.delete()
+        return {"message": "Medicine deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete medicine: {str(e)}")
+
+@app.post("/api/pharmacy/dispense/{patient_id}")
+async def dispense_medicines(patient_id: str, req: DispenseRequest):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        # Get patient doc
+        patient_ref = db.collection("patients").document(patient_id)
+        patient_doc = patient_ref.get()
+        if not patient_doc.exists:
+            raise HTTPException(status_code=404, detail="Patient not found.")
+        
+        patient_data = patient_doc.to_dict()
+        
+        # Verify and update medicine stocks
+        medicines_ref = db.collection("medicines")
+        med_docs_stream = medicines_ref.stream()
+        meds_by_name = {}
+        meds_by_id = {}
+        for d in med_docs_stream:
+            m_dict = d.to_dict()
+            m_dict["_doc_id"] = d.id
+            meds_by_name[m_dict.get("name", "").strip().lower()] = m_dict
+            meds_by_id[d.id] = m_dict
+
+        # Process each item in prescription/dispense bill
+        for item in req.items:
+            m_name_lower = item.name.strip().lower()
+            matched_med = meds_by_name.get(m_name_lower)
+            if matched_med:
+                doc_id = matched_med["_doc_id"]
+                current_rem = matched_med.get("remaining_stock", 0)
+                current_sold = matched_med.get("sold_qty", 0)
+                
+                new_rem = max(0, current_rem - item.qty)
+                new_sold = current_sold + item.qty
+                
+                # Update medicine stock doc
+                medicines_ref.document(doc_id).update({
+                    "remaining_stock": new_rem,
+                    "sold_qty": new_sold
+                })
+
+        # Update patient document pharmacy payment status and pharmacy bill
+        patient_data["appointment"]["pharmacyPaymentStatus"] = "paid"
+        items_dict = [it.model_dump() for it in req.items]
+        patient_data["appointment"]["pharmacyBill"] = items_dict
+        patient_ref.set(patient_data)
+
+        # Record sales log
+        import datetime
+        sale_log = {
+            "patient_id": patient_id,
+            "patient_name": patient_data.get("personal", {}).get("name", "Unknown"),
+            "items": items_dict,
+            "grand_total": req.grand_total,
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        db.collection("pharmacy_sales").document().set(sale_log)
+
+        return {"message": "Medicines dispensed and stock updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to dispense medicines: {str(e)}")
+
+@app.get("/api/pharmacy/sales")
+async def get_pharmacy_sales():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        sales_ref = db.collection("pharmacy_sales")
+        docs = sales_ref.stream()
+        sales_list = []
+        for doc in docs:
+            s = doc.to_dict()
+            s["id"] = doc.id
+            sales_list.append(s)
+        return {"sales": sales_list}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve sales logs: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
+

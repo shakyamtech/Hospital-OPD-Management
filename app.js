@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration ---
-    const API_BASE = 'https://hospital-opd-management.onrender.com/api';
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000/api' : 'https://hospital-opd-management.onrender.com/api';
 
     // --- DOM Elements ---
     const landingView = document.getElementById('landing-view');
@@ -1633,6 +1633,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!patient) return;
 
         const pharmacyBill = [];
+        let grandTotal = 0;
         document.querySelectorAll('#pharmacy-bill-tbody tr').forEach(tr => {
             const name = tr.querySelector('.pharm-name').value.trim();
             const qty = parseFloat(tr.querySelector('.pharm-qty').value) || 0;
@@ -1640,33 +1641,36 @@ document.addEventListener('DOMContentLoaded', () => {
             const total = qty * rate;
             if (name) {
                 pharmacyBill.push({ name, qty, rate, total });
+                grandTotal += total;
             }
         });
 
-        patient.appointment.pharmacyBill = pharmacyBill;
-        patient.appointment.pharmacyPaymentStatus = 'paid';
-
         try {
-            const response = await fetch(`${API_BASE}/patients/${currentPharmacyPatientId}`, {
-                method: 'PUT',
+            const response = await fetch(`${API_BASE}/pharmacy/dispense/${currentPharmacyPatientId}`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(patient)
+                body: JSON.stringify({
+                    patient_id: currentPharmacyPatientId,
+                    items: pharmacyBill,
+                    grand_total: grandTotal
+                })
             });
 
             if (response.ok) {
-                showToast('Pharmacy bill saved and marked as paid!');
+                showToast('Medicines dispensed & stock updated successfully!');
                 if (typeof printPharmacyInvoice === 'function') {
                     printPharmacyInvoice(patient, pharmacyBill);
                 }
                 document.getElementById('pharmacy-modal').classList.remove('active');
                 loadPatients(); 
+                fetchMedicines();
                 setTimeout(loadPharmacy, 500);
             } else {
-                showToast('Failed to save pharmacy bill.', true);
+                showToast('Failed to dispense medicines.');
             }
         } catch (error) {
             console.error(error);
-            showToast('Error saving pharmacy bill.', true);
+            showToast('Error dispensing medicines.');
         }
     });
 
@@ -1809,6 +1813,281 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.print();
     };
+
+    // --- Pharmacy Sub-Tabs & Inventory Management ---
+    let medicinesCache = [];
+
+    const subtabInventory = document.getElementById('subtab-pharmacy-inventory');
+    const subtabPrescriptions = document.getElementById('subtab-pharmacy-prescriptions');
+    const subtabSales = document.getElementById('subtab-pharmacy-sales');
+
+    const viewInventory = document.getElementById('pharmacy-view-inventory');
+    const viewPrescriptions = document.getElementById('pharmacy-view-prescriptions');
+    const viewSales = document.getElementById('pharmacy-view-sales');
+
+    if (subtabInventory && subtabPrescriptions && subtabSales) {
+        subtabInventory.addEventListener('click', () => switchPharmacySubtab('inventory'));
+        subtabPrescriptions.addEventListener('click', () => switchPharmacySubtab('prescriptions'));
+        subtabSales.addEventListener('click', () => switchPharmacySubtab('sales'));
+    }
+
+    function switchPharmacySubtab(tabName) {
+        if (subtabInventory) subtabInventory.classList.toggle('active', tabName === 'inventory');
+        if (subtabPrescriptions) subtabPrescriptions.classList.toggle('active', tabName === 'prescriptions');
+        if (subtabSales) subtabSales.classList.toggle('active', tabName === 'sales');
+
+        if (viewInventory) viewInventory.style.display = tabName === 'inventory' ? 'block' : 'none';
+        if (viewPrescriptions) viewPrescriptions.style.display = tabName === 'prescriptions' ? 'block' : 'none';
+        if (viewSales) viewSales.style.display = tabName === 'sales' ? 'block' : 'none';
+
+        if (tabName === 'inventory') {
+            fetchMedicines();
+        } else if (tabName === 'prescriptions') {
+            loadPharmacy();
+        } else if (tabName === 'sales') {
+            fetchSalesLogs();
+        }
+    }
+
+    async function fetchMedicines() {
+        try {
+            const response = await fetch(`${API_BASE}/pharmacy/medicines`);
+            if (response.ok) {
+                const data = await response.json();
+                medicinesCache = data.medicines || [];
+                renderInventory();
+                renderPharmacyStats();
+            }
+        } catch (error) {
+            console.error('Error fetching medicines:', error);
+        }
+    }
+
+    function renderInventory() {
+        const tbody = document.getElementById('inventory-tbody');
+        if (!tbody) return;
+
+        const searchVal = document.getElementById('inventory-search')?.value.toLowerCase().trim() || '';
+        const statusFilter = document.getElementById('filter-stock-status')?.value || '';
+
+        let filtered = medicinesCache.filter(m => {
+            const matchesSearch = !searchVal || m.name.toLowerCase().includes(searchVal) || (m.category && m.category.toLowerCase().includes(searchVal));
+            let matchesStatus = true;
+
+            const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - (m.sold_qty || 0));
+            const minAlert = m.min_stock_alert || 10;
+
+            if (statusFilter === 'instock') {
+                matchesStatus = rem > minAlert;
+            } else if (statusFilter === 'lowstock') {
+                matchesStatus = rem > 0 && rem <= minAlert;
+            } else if (statusFilter === 'outstock') {
+                matchesStatus = rem <= 0;
+            }
+            return matchesSearch && matchesStatus;
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem;">No medicines found. Click "Add Medicine / Restock" to add items.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(m => {
+            const sold = m.sold_qty || 0;
+            const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - sold);
+            const minAlert = m.min_stock_alert || 10;
+            const unitPrice = parseFloat(m.unit_price || 0).toFixed(2);
+
+            let statusBadge = '<span class="badge-instock"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> In Stock</span>';
+            if (rem <= 0) {
+                statusBadge = '<span class="badge-outstock"><span class="material-symbols-outlined" style="font-size:14px;">error</span> Out of Stock</span>';
+            } else if (rem <= minAlert) {
+                statusBadge = '<span class="badge-lowstock"><span class="material-symbols-outlined" style="font-size:14px;">warning</span> Low Stock</span>';
+            }
+
+            return `
+                <tr>
+                    <td><strong>${escapeHtml(m.name)}</strong></td>
+                    <td>${escapeHtml(m.category || 'Tablet')}</td>
+                    <td>Rs ${unitPrice}</td>
+                    <td>${m.total_stock}</td>
+                    <td><strong style="color: #10b981;">${sold} units</strong></td>
+                    <td><strong style="color: ${rem <= minAlert ? '#dc2626' : '#3b82f6'};">${rem} units</strong></td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action edit" onclick="window._editMedicine('${m.id}')" title="Restock / Edit">
+                                <span class="material-symbols-outlined">edit</span> Restock/Edit
+                            </button>
+                            <button class="btn-action delete" onclick="window._deleteMedicine('${m.id}')" title="Delete">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderPharmacyStats() {
+        const totalMedsElem = document.getElementById('stat-total-medicines');
+        const totalSoldElem = document.getElementById('stat-total-sold');
+        const remStockElem = document.getElementById('stat-remaining-stock');
+        const lowStockElem = document.getElementById('stat-low-stock');
+
+        let totalSold = 0;
+        let totalRemaining = 0;
+        let lowStockCount = 0;
+
+        medicinesCache.forEach(m => {
+            const sold = m.sold_qty || 0;
+            const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - sold);
+            const minAlert = m.min_stock_alert || 10;
+
+            totalSold += sold;
+            totalRemaining += rem;
+            if (rem <= minAlert) lowStockCount++;
+        });
+
+        if (totalMedsElem) totalMedsElem.textContent = medicinesCache.length;
+        if (totalSoldElem) totalSoldElem.textContent = `${totalSold} units`;
+        if (remStockElem) remStockElem.textContent = `${totalRemaining} units`;
+        if (lowStockElem) lowStockElem.textContent = `${lowStockCount} items`;
+    }
+
+    document.getElementById('inventory-search')?.addEventListener('input', renderInventory);
+    document.getElementById('filter-stock-status')?.addEventListener('change', renderInventory);
+    document.getElementById('inventory-refresh-btn')?.addEventListener('click', fetchMedicines);
+
+    const medModal = document.getElementById('medicine-modal');
+    const btnOpenMedModal = document.getElementById('btn-add-medicine-modal');
+    const medCloseBtn = document.getElementById('medicine-modal-close-btn');
+    const medCancelBtn = document.getElementById('med-cancel-btn');
+    const medForm = document.getElementById('medicine-form');
+
+    if (btnOpenMedModal) {
+        btnOpenMedModal.addEventListener('click', () => window._openMedicineModal());
+    }
+    if (medCloseBtn) medCloseBtn.addEventListener('click', () => medModal.classList.remove('active'));
+    if (medCancelBtn) medCancelBtn.addEventListener('click', () => medModal.classList.remove('active'));
+
+    window._openMedicineModal = function(med = null) {
+        document.getElementById('med-id').value = med ? med.id : '';
+        document.getElementById('med-name').value = med ? med.name : '';
+        document.getElementById('med-category').value = med ? (med.category || 'Tablet') : 'Tablet';
+        document.getElementById('med-price').value = med ? med.unit_price : '';
+        document.getElementById('med-stock').value = med ? med.total_stock : '';
+        document.getElementById('med-min-alert').value = med ? (med.min_stock_alert || 10) : 10;
+        document.getElementById('med-expiry').value = med ? (med.expiry_date || '') : '';
+        
+        document.getElementById('medicine-modal-title').textContent = med ? 'Edit Medicine / Restock' : 'Add New Medicine';
+        medModal.classList.add('active');
+    };
+
+    window._editMedicine = function(id) {
+        const med = medicinesCache.find(m => m.id === id);
+        if (med) window._openMedicineModal(med);
+    };
+
+    window._deleteMedicine = async function(id) {
+        if (!confirm('Are you sure you want to delete this medicine from inventory?')) return;
+        try {
+            const response = await fetch(`${API_BASE}/pharmacy/medicines/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                showToast('Medicine deleted successfully');
+                fetchMedicines();
+            } else {
+                showToast('Failed to delete medicine');
+            }
+        } catch (error) {
+            console.error(error);
+            showToast('Error deleting medicine');
+        }
+    };
+
+    if (medForm) {
+        medForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('med-id').value;
+            const name = document.getElementById('med-name').value.trim();
+            const category = document.getElementById('med-category').value;
+            const unitPrice = parseFloat(document.getElementById('med-price').value) || 0;
+            const totalStock = parseInt(document.getElementById('med-stock').value) || 0;
+            const minAlert = parseInt(document.getElementById('med-min-alert').value) || 10;
+            const expiryDate = document.getElementById('med-expiry').value;
+
+            const existingMed = medicinesCache.find(m => m.id === id);
+            const soldQty = existingMed ? (existingMed.sold_qty || 0) : 0;
+            const remainingStock = Math.max(0, totalStock - soldQty);
+
+            const payload = {
+                name,
+                category,
+                unit_price: unitPrice,
+                total_stock: totalStock,
+                sold_qty: soldQty,
+                remaining_stock: remainingStock,
+                min_stock_alert: minAlert,
+                expiry_date: expiryDate
+            };
+
+            try {
+                const url = id ? `${API_BASE}/pharmacy/medicines/${id}` : `${API_BASE}/pharmacy/medicines`;
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showToast(id ? 'Medicine updated / restocked!' : 'Medicine added to inventory!');
+                    medModal.classList.remove('active');
+                    fetchMedicines();
+                } else {
+                    showToast('Failed to save medicine details.');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Error saving medicine.');
+            }
+        });
+    }
+
+    async function fetchSalesLogs() {
+        const tbody = document.getElementById('sales-tbody');
+        if (!tbody) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/pharmacy/sales`);
+            if (response.ok) {
+                const data = await response.json();
+                const sales = data.sales || [];
+                if (sales.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem;">No sales recorded yet.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = sales.map(s => {
+                    const dateStr = s.timestamp ? new Date(s.timestamp).toLocaleString() : 'N/A';
+                    const itemsStr = (s.items || []).map(i => `${i.name} (x${i.qty})`).join(', ');
+                    return `
+                        <tr>
+                            <td>${dateStr}</td>
+                            <td><strong>${escapeHtml(s.patient_name || 'Patient')}</strong></td>
+                            <td>${escapeHtml(itemsStr)}</td>
+                            <td><strong style="color: #10b981;">Rs ${parseFloat(s.grand_total || 0).toFixed(2)}</strong></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        } catch (error) {
+            console.error('Error fetching sales log:', error);
+        }
+    }
+
+    // Load initial medicines data when tab loaded
+    fetchMedicines();
 
     async function fetchAppointmentRequests() {
         const tbody = document.getElementById('requests-tbody');

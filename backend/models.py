@@ -51,3 +51,19 @@ class AppointmentRequest(BaseModel):
     date: str
     doctor: str
     status: str = "pending"
+
+class Medicine(BaseModel):
+    name: str
+    category: str = "Tablet"
+    unit_price: float
+    total_stock: int
+    sold_qty: int = 0
+    remaining_stock: int
+    min_stock_alert: int = 10
+    expiry_date: Optional[str] = None
+
+class DispenseRequest(BaseModel):
+    patient_id: str
+    items: List[MedicineItem]
+    grand_total: float
+
