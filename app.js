@@ -1044,6 +1044,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeSec = document.getElementById(`section-${tab}`);
         if (activeBtn) activeBtn.classList.add('active');
         if (activeSec) activeSec.classList.add('active');
+
+        // Update Topbar View Title
+        const titleElem = document.getElementById('current-view-title');
+        if (titleElem) {
+            const titleMap = {
+                'register': 'New Patient Registration',
+                'directory': 'Patient Directory',
+                'billing': 'Billing & Payments',
+                'pharmacy': 'Pharmacy & Stock Management',
+                'requests': 'Online Appointment Requests',
+                'settings': 'Settings & Doctor Management'
+            };
+            titleElem.textContent = titleMap[tab] || 'Dashboard';
+        }
+
+        // Close mobile drawer on navigation
+        const sidebar = document.getElementById('dashboard-sidebar');
+        if (sidebar) sidebar.classList.remove('active');
+    }
+
+    // Mobile Sidebar Toggle
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', () => {
+            const sidebar = document.getElementById('dashboard-sidebar');
+            if (sidebar) sidebar.classList.toggle('active');
+        });
     }
 
     // --- View Helpers ---
@@ -1071,6 +1098,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const userNameEl = document.querySelector('.user-name');
         if (userNameEl) {
             userNameEl.textContent = name;
+        }
+
+        const roleBadgeEl = document.getElementById('user-role-badge');
+        if (roleBadgeEl) {
+            const roleNameMap = {
+                'admin': 'Administrator',
+                'staff': 'Staff Member',
+                'doctor': 'Attending Doctor',
+                'cashier': 'Cashier',
+                'pharmacy': 'Pharmacist'
+            };
+            roleBadgeEl.textContent = roleNameMap[role] || role;
         }
 
         // Setup UI state depending on role
