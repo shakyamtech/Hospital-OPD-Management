@@ -62,17 +62,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentViewPatient = null;
     let deleteTargetId = null;
 
-    // --- Initialize ---
+    // --- Immediate View Initialization (Eliminates Homepage Flash) ---
     const isAuthenticated = localStorage.getItem('opd_auth') === 'true';
-    fetchDoctors().then(() => {
-        if (isAuthenticated) {
-            showDashboard();
-        } else if (window.location.hash === '#admin' || window.location.hash === '#login' || window.location.search.includes('admin')) {
-            showLogin();
-        } else {
-            showLanding();
-        }
-    });
+    if (isAuthenticated) {
+        showDashboard();
+    } else if (window.location.hash === '#admin' || window.location.hash === '#login' || window.location.search.includes('admin')) {
+        showLogin();
+    } else {
+        showLanding();
+    }
+
+    // Fetch background data after active view is instantly displayed
+    fetchDoctors();
 
     const btnPortalLogin = document.getElementById('btn-portal-login');
     if (btnPortalLogin) {

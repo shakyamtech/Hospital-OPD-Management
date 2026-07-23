@@ -32,12 +32,30 @@
             }
             debug.innerHTML += 'Promise rejection: ' + e.reason + '<br>';
         });
+
+        // Immediate FOUC prevention (Eliminates Homepage Flashing)
+        try {
+            var isAuth = localStorage.getItem('opd_auth') === 'true';
+            var isLoginHash = window.location.hash === '#admin' || window.location.hash === '#login' || window.location.search.indexOf('admin') !== -1;
+            document.addEventListener('DOMContentLoaded', function() {
+                var l = document.getElementById('landing-view');
+                var v = document.getElementById('login-view');
+                var d = document.getElementById('dashboard-view');
+                if (isAuth) {
+                    if (d) d.classList.add('active');
+                } else if (isLoginHash) {
+                    if (v) v.classList.add('active');
+                } else {
+                    if (l) l.classList.add('active');
+                }
+            });
+        } catch(e) {}
     </script>
 </head>
 <body>
     <div id="app">
         <!-- Landing View -->
-        <div id="landing-view" class="view active">
+        <div id="landing-view" class="view">
             <!-- Header -->
             <header class="landing-header">
                 <div class="landing-container header-container">
@@ -1181,6 +1199,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=260"></script>
+    <script src="app.js?v=270"></script>
 </body>
 </html>
