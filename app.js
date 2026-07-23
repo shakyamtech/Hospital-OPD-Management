@@ -1113,6 +1113,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (qaPharmacy) qaPharmacy.style.display = (role === 'admin' || role === 'pharmacy') ? 'inline-flex' : 'none';
         if (qaDoctor) qaDoctor.style.display = (role === 'admin') ? 'inline-flex' : 'none';
 
+        // Filter KPI Stat Cards based on logged in role
+        const kpiConsult = document.getElementById('kpi-card-consult-revenue');
+        const kpiPending = document.getElementById('kpi-card-pending-requests');
+        const kpiPharmacy = document.getElementById('kpi-card-pharmacy-sales');
+
+        if (kpiConsult) kpiConsult.style.display = (role === 'pharmacy') ? 'none' : 'flex';
+        if (kpiPending) kpiPending.style.display = (role === 'pharmacy' || role === 'cashier') ? 'none' : 'flex';
+        if (kpiPharmacy) kpiPharmacy.style.display = (role === 'cashier') ? 'none' : 'flex';
+
         const totalPatientsElem = document.getElementById('ov-total-patients');
         const activeDoctorsElem = document.getElementById('ov-active-doctors');
         const consultRevElem = document.getElementById('ov-consult-revenue');
