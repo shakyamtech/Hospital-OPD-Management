@@ -2328,13 +2328,18 @@ body {
     gap: 1rem;
     border: 1px solid var(--border);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    cursor: pointer;
     transition: all 0.25s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(13, 148, 136, 0.18);
     border-color: #0d9488;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1);
 }
 
 .stat-icon {
