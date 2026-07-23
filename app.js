@@ -297,7 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabPharmacy) {
         tabPharmacy.addEventListener('click', () => {
             switchTab('pharmacy');
+            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('inventory');
             if (typeof loadPharmacy === 'function') loadPharmacy();
+            if (typeof fetchMedicines === 'function') fetchMedicines();
         });
     }
     
@@ -1095,7 +1097,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabSettings) tabSettings.style.display = 'none';
             if (tabRequests) tabRequests.style.display = 'none';
             switchTab('pharmacy');
+            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('inventory');
             if (typeof loadPharmacy === 'function') loadPharmacy();
+            if (typeof fetchMedicines === 'function') fetchMedicines();
         } else if (role === 'cashier') {
             if (tabRegister) tabRegister.style.display = 'none';
             if (tabBilling) tabBilling.style.display = 'inline-flex';
