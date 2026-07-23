@@ -1193,25 +1193,56 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Helper function to check assigned patient count for a doctor
+        function getDoctorPatientCount(doc) {
+            if (!doc || !patientsCache || patientsCache.length === 0) return 0;
+            const docNameLower = (doc.name || '').toLowerCase().trim();
+            const docId = doc.id;
+
+            return patientsCache.filter(p => {
+                const assignedDoc = (p.appointment?.doctor || '').toLowerCase().trim();
+                if (!assignedDoc) return false;
+                
+                if (docId && assignedDoc === docId.toLowerCase()) return true;
+                if (docNameLower && assignedDoc.includes(docNameLower)) return true;
+                if (docNameLower && docNameLower.includes(assignedDoc)) return true;
+
+                return false;
+            }).length;
+        }
+
         // On-Duty Doctors Summary List
+        let activeDocsCount = 0;
         if (doctorsSummary) {
             if (doctorsCache.length === 0) {
                 doctorsSummary.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No doctors registered.</p>`;
             } else {
-                doctorsSummary.innerHTML = doctorsCache.map(d => `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--input-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 0.6rem;">
-                            <span class="material-symbols-outlined" style="color: var(--primary);">stethoscope</span>
-                            <div>
-                                <strong style="font-size: 0.9rem; color: var(--secondary);">${escapeHtml(d.name)}</strong>
-                                <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(d.specialization)}</div>
+                doctorsSummary.innerHTML = doctorsCache.map(d => {
+                    const patientCount = getDoctorPatientCount(d);
+                    const isOnDuty = patientCount > 0;
+                    if (isOnDuty) activeDocsCount++;
+
+                    const badgeHtml = isOnDuty 
+                        ? `<span class="badge badge-primary" style="font-size: 0.75rem;">On Duty (${patientCount} ${patientCount === 1 ? 'Patient' : 'Patients'})</span>`
+                        : `<span class="badge" style="font-size: 0.75rem; background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid #cbd5e1;">Off Duty</span>`;
+
+                    return `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--input-bg); border-radius: var(--radius-sm); border: 1px solid var(--border); ${!isOnDuty ? 'opacity: 0.75;' : ''}">
+                            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                <span class="material-symbols-outlined" style="color: ${isOnDuty ? 'var(--primary)' : '#94a3b8'};">stethoscope</span>
+                                <div>
+                                    <strong style="font-size: 0.9rem; color: var(--secondary);">${escapeHtml(d.name)}</strong>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(d.specialization)}</div>
+                                </div>
                             </div>
+                            ${badgeHtml}
                         </div>
-                        <span class="badge badge-primary" style="font-size: 0.75rem;">On Duty</span>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
         }
+
+        if (activeDoctorsElem) activeDoctorsElem.textContent = activeDocsCount;
     }
 
     // Mobile Sidebar Toggle
