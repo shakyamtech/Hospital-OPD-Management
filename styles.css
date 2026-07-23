@@ -41,12 +41,18 @@ body {
     min-height: 100vh;
 }
 
-/* Material Icons Alignment */
+/* Material Icons Alignment & Layout Shift Prevention */
 .material-symbols-outlined {
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    vertical-align: middle;
+    width: 1.2em;
+    height: 1.2em;
+    overflow: hidden;
+    white-space: nowrap;
+    user-select: none;
 }
 
 /* Views Management */
