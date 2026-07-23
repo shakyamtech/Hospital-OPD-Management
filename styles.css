@@ -2465,8 +2465,35 @@ body {
     border-radius: 9999px;
 }
 
-#ov-doctors-summary::-webkit-scrollbar-thumb:hover {
+/* Scrollable Overview Tables */
+.table-container {
+    max-height: 440px;
+    overflow-y: auto;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+.table-container table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8fafc;
 }
 
 

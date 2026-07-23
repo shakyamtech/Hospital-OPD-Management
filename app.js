@@ -1179,9 +1179,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('Requests fetch error:', err);
         }
 
-        // Recent Patients Admissions Table (Latest 5)
+        // Recent Patients Admissions Table (Latest 10)
         if (recentTbody) {
-            const recent = overviewPatients.slice(-5).reverse();
+            const recent = overviewPatients.slice(-10).reverse();
             if (recent.length === 0) {
                 recentTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 1.5rem;">No recent admissions.</td></tr>`;
             } else {
