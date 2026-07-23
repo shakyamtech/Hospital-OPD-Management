@@ -1118,8 +1118,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const kpiPending = document.getElementById('kpi-card-pending-requests');
         const kpiPharmacy = document.getElementById('kpi-card-pharmacy-sales');
 
-        if (kpiConsult) kpiConsult.style.display = (role === 'pharmacy') ? 'none' : 'flex';
-        if (kpiPharmacy) kpiPharmacy.style.display = 'flex';
+        if (kpiConsult) kpiConsult.style.display = (role === 'pharmacy' || role === 'doctor') ? 'none' : 'flex';
+        if (kpiPharmacy) kpiPharmacy.style.display = (role === 'doctor') ? 'none' : 'flex';
         if (kpiPending) kpiPending.style.display = (role === 'pharmacy' || role === 'cashier') ? 'none' : 'flex';
 
         const totalPatientsElem = document.getElementById('ov-total-patients');
@@ -1303,6 +1303,8 @@ document.addEventListener('DOMContentLoaded', () => {
         applyRolePermissionsToForm(false);
         
         if (role === 'doctor') {
+            const tabDashboardOverview = document.getElementById('tab-dashboard-overview');
+            if (tabDashboardOverview) tabDashboardOverview.style.display = 'inline-flex';
             if (tabRegister) tabRegister.style.display = 'none';
             if (tabBilling) tabBilling.style.display = 'none';
             if (tabPharmacy) tabPharmacy.style.display = 'none';
