@@ -63,18 +63,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentViewPatient = null;
     let deleteTargetId = null;
 
-    // --- Immediate View Initialization (Eliminates Homepage Flash) ---
+    // Show the right view immediately (no flash), then fetch doctors,
+    // and only AFTER doctors are loaded, load patients so formatDoctor works correctly.
     const isAuthenticated = localStorage.getItem('opd_auth') === 'true';
     if (isAuthenticated) {
-        showDashboard();
+        showDashboard(true); // show view instantly, skip patient load
     } else if (window.location.hash === '#admin' || window.location.hash === '#login' || window.location.search.includes('admin')) {
         showLogin();
     } else {
         showLanding();
     }
 
-    // Fetch background data after active view is instantly displayed
-    fetchDoctors();
+    fetchDoctors().then(() => {
+        if (isAuthenticated) {
+            const role = localStorage.getItem('opd_role') || 'admin';
+            if (role === 'admin' || role === 'staff' || role === 'doctor') {
+                loadPatients().then(() => {
+                    if (role === 'admin') loadDashboardOverview();
+                });
+            }
+        }
+    });
 
     const btnPortalLogin = document.getElementById('btn-portal-login');
     if (btnPortalLogin) {
@@ -1464,7 +1473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginView.classList.add('active');
     }
 
-    function showDashboard() {
+    function showDashboard(skipLoad = false) {
         loginView.classList.remove('active');
         landingView.classList.remove('active');
         dashboardView.classList.add('active');
@@ -1508,7 +1517,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabSettings) tabSettings.style.display = 'none';
             if (tabRequests) tabRequests.style.display = 'none';
             switchTab('directory');
-            loadPatients();
+            if (!skipLoad) loadPatients();
         } else if (role === 'pharmacy') {
             if (tabRegister) tabRegister.style.display = 'none';
             if (tabBilling) tabBilling.style.display = 'none';
@@ -1545,7 +1554,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabSettings) tabSettings.style.display = 'inline-flex';
             if (tabRequests) tabRequests.style.display = 'inline-flex';
             switchTab('dashboard-overview');
-            loadPatients().then(() => loadDashboardOverview());
+            if (!skipLoad) loadPatients().then(() => loadDashboardOverview());
         }
     }
 
