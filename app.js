@@ -1053,7 +1053,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         
-        window.print();
+        setTimeout(() => {
+            window.print();
+        }, 150);
     }
 
     // --- Tab Switching ---

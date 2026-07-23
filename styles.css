@@ -2489,11 +2489,186 @@ body {
     background: #94a3b8;
 }
 
-.table-container table thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #f8fafc;
+/* ==================== PRINT INVOICE STYLES ==================== */
+#print-section {
+    display: none;
+}
+
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+
+    #print-section, #print-section * {
+        visibility: visible !important;
+    }
+
+    #print-section {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 24px !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+    }
+
+    .print-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border-bottom: 2px solid #0f172a !important;
+        padding-bottom: 15px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .print-logo-section {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+
+    .print-logo-icon {
+        font-size: 36px !important;
+        color: #0d9488 !important;
+    }
+
+    .print-hospital-name {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        color: #0f172a !important;
+    }
+
+    .print-hospital-sub {
+        font-size: 11px !important;
+        color: #64748b !important;
+        margin: 2px 0 0 0 !important;
+    }
+
+    .print-title {
+        text-align: right !important;
+    }
+
+    .print-title h1 {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        margin: 0 !important;
+    }
+
+    .print-title p {
+        font-size: 11px !important;
+        color: #64748b !important;
+        margin: 2px 0 0 0 !important;
+    }
+
+    .print-metadata-grid {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin-bottom: 20px !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 16px !important;
+        border-radius: 8px !important;
+        background: #f8fafc !important;
+    }
+
+    .print-meta-block h3 {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: #0f172a !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding-bottom: 4px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .print-meta-row {
+        font-size: 12px !important;
+        margin-bottom: 6px !important;
+        color: #334155 !important;
+    }
+
+    .print-meta-label {
+        font-weight: 600 !important;
+        display: inline-block !important;
+        width: 140px !important;
+        color: #64748b !important;
+    }
+
+    .print-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 20px !important;
+    }
+
+    .print-table th, .print-table td {
+        border: 1px solid #e2e8f0 !important;
+        padding: 10px 12px !important;
+        font-size: 12px !important;
+        text-align: left !important;
+    }
+
+    .print-table th {
+        background-color: #f1f5f9 !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+    }
+
+    .print-prescription-section {
+        border: 1px solid #e2e8f0 !important;
+        padding: 16px !important;
+        border-radius: 8px !important;
+        margin-bottom: 30px !important;
+        background: #ffffff !important;
+    }
+
+    .print-prescription-section h3 {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        color: #0f172a !important;
+        margin-bottom: 10px !important;
+    }
+
+    .print-prescription-text {
+        font-size: 12px !important;
+        background: #f8fafc !important;
+        padding: 10px !important;
+        border-radius: 6px !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #334155 !important;
+    }
+
+    .print-footer {
+        display: flex !important;
+        justify-content: space-between !important;
+        margin-top: 60px !important;
+        padding-top: 10px !important;
+    }
+
+    .print-signature-space {
+        width: 220px !important;
+        text-align: center !important;
+    }
+
+    .print-signature-line {
+        border-top: 1.5px solid #0f172a !important;
+        padding-top: 6px !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+    }
+
+    .print-sys-info {
+        margin-top: 40px !important;
+        text-align: center !important;
+        font-size: 10px !important;
+        color: #94a3b8 !important;
+    }
 }
 
 
