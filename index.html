@@ -362,19 +362,19 @@
                     <div class="quick-actions-bar" style="margin-bottom: 2rem;">
                         <h3 class="section-title" style="margin-bottom: 1rem;"><span class="material-symbols-outlined">bolt</span> Quick Actions</h3>
                         <div class="quick-actions-grid">
-                            <button class="quick-action-btn" onclick="if(document.getElementById('tab-register')) document.getElementById('tab-register').click()">
+                            <button class="quick-action-btn" id="qa-btn-register" onclick="if(document.getElementById('tab-register')) document.getElementById('tab-register').click()">
                                 <span class="material-symbols-outlined">person_add</span>
                                 <span>Register Patient</span>
                             </button>
-                            <button class="quick-action-btn" onclick="if(document.getElementById('tab-billing')) document.getElementById('tab-billing').click()">
+                            <button class="quick-action-btn" id="qa-btn-billing" onclick="if(document.getElementById('tab-billing')) document.getElementById('tab-billing').click()">
                                 <span class="material-symbols-outlined">payments</span>
                                 <span>Collect Payment</span>
                             </button>
-                            <button class="quick-action-btn" onclick="if(document.getElementById('tab-pharmacy')) document.getElementById('tab-pharmacy').click()">
+                            <button class="quick-action-btn" id="qa-btn-pharmacy" onclick="if(document.getElementById('tab-pharmacy')) document.getElementById('tab-pharmacy').click()">
                                 <span class="material-symbols-outlined">local_pharmacy</span>
                                 <span>Manage Pharmacy</span>
                             </button>
-                            <button class="quick-action-btn" onclick="if(document.getElementById('tab-settings')) document.getElementById('tab-settings').click()">
+                            <button class="quick-action-btn" id="qa-btn-doctor" onclick="if(document.getElementById('tab-settings')) document.getElementById('tab-settings').click()">
                                 <span class="material-symbols-outlined">person_add</span>
                                 <span>Add Doctor</span>
                             </button>
@@ -1173,6 +1173,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=70"></script>
+    <script src="app.js?v=80"></script>
 </body>
 </html>

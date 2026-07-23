@@ -1100,6 +1100,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadDashboardOverview() {
+        const role = localStorage.getItem('opd_role') || 'admin';
+
+        // Filter Quick Action Buttons based on logged in role
+        const qaRegister = document.getElementById('qa-btn-register');
+        const qaBilling = document.getElementById('qa-btn-billing');
+        const qaPharmacy = document.getElementById('qa-btn-pharmacy');
+        const qaDoctor = document.getElementById('qa-btn-doctor');
+
+        if (qaRegister) qaRegister.style.display = (role === 'admin' || role === 'staff') ? 'inline-flex' : 'none';
+        if (qaBilling) qaBilling.style.display = (role === 'admin' || role === 'cashier' || role === 'staff') ? 'inline-flex' : 'none';
+        if (qaPharmacy) qaPharmacy.style.display = (role === 'admin' || role === 'pharmacy') ? 'inline-flex' : 'none';
+        if (qaDoctor) qaDoctor.style.display = (role === 'admin') ? 'inline-flex' : 'none';
+
         const totalPatientsElem = document.getElementById('ov-total-patients');
         const activeDoctorsElem = document.getElementById('ov-active-doctors');
         const consultRevElem = document.getElementById('ov-consult-revenue');
@@ -1268,6 +1281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof loadPharmacy === 'function') loadPharmacy();
             if (typeof fetchMedicines === 'function') fetchMedicines();
         } else if (role === 'cashier') {
+            if (tabDashboardOverview) tabDashboardOverview.style.display = 'inline-flex';
             if (tabRegister) tabRegister.style.display = 'none';
             if (tabBilling) tabBilling.style.display = 'inline-flex';
             if (tabPharmacy) tabPharmacy.style.display = 'none';
@@ -1276,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             switchTab('billing');
             if (typeof loadBilling === 'function') loadBilling();
         } else if (role === 'staff') {
+            if (tabDashboardOverview) tabDashboardOverview.style.display = 'inline-flex';
             if (tabRegister) tabRegister.style.display = 'inline-flex';
             if (tabBilling) tabBilling.style.display = 'none';
             if (tabPharmacy) tabPharmacy.style.display = 'none';
@@ -1284,7 +1299,6 @@ document.addEventListener('DOMContentLoaded', () => {
             switchTab('register');
         } else {
             // Admin sees all
-            const tabDashboardOverview = document.getElementById('tab-dashboard-overview');
             if (tabDashboardOverview) tabDashboardOverview.style.display = 'inline-flex';
             if (tabRegister) tabRegister.style.display = 'inline-flex';
             if (tabBilling) tabBilling.style.display = 'inline-flex';
