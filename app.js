@@ -635,8 +635,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- View Patient Modal ---
-    function viewPatient(id) {
-        const patient = patientsCache.find(p => p.id === id);
+    function viewPatient(patientParam) {
+        if (!patientParam) return;
+
+        let patient = patientParam;
+        if (typeof patientParam === 'string') {
+            patient = patientsCache.find(p => p.id === patientParam);
+        }
         if (!patient) return;
 
         currentViewPatient = patient;
@@ -752,7 +757,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Edit Patient ---
-    function editPatient(patient) {
+    function editPatient(patientParam) {
+        if (!patientParam) return;
+
+        let patient = patientParam;
+        if (typeof patientParam === 'string') {
+            patient = patientsCache.find(p => p.id === patientParam);
+        }
+        if (!patient) return;
+
         const p = patient.personal || {};
         const g = patient.guardian || {};
         const m = patient.medical || {};
@@ -893,7 +906,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function printPatientInvoice(patient) {
+    function printPatientInvoice(patientParam) {
+        if (!patientParam) return;
+
+        let patient = patientParam;
+        if (typeof patientParam === 'string') {
+            patient = patientsCache.find(p => p.id === patientParam);
+        }
         if (!patient) return;
         
         const printSection = document.getElementById('print-section');
