@@ -631,6 +631,24 @@ body {
     gap: 1rem;
     margin-bottom: 1.5rem;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.directory-toolbar .search-wrapper {
+    flex: 1;
+    min-width: 260px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.directory-toolbar .btn-primary {
+    width: auto;
+    margin-top: 0;
+    white-space: nowrap;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
 }
 
 .search-wrapper {
