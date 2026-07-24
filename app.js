@@ -3153,14 +3153,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <script>
                     window.onload = function() {
-                        window.print();
-                        setTimeout(function() { window.close(); }, 500);
+                        document.title = '${escapeHtml(customerName).replace(/'/g, "\\'")} - Receipt - ${new Date().toISOString().slice(0,10)}';
+                        setTimeout(function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 1000);
+                        }, 300);
                     };
                 </script>
             </body>
             </html>
         `);
         printWindow.document.close();
+        printWindow.document.title = `${customerName} - Receipt - ${new Date().toISOString().slice(0,10)}`;
     }
 
     window._saveAndPrintCounterBill = async function() {
