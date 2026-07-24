@@ -992,22 +992,55 @@
                         </div>
                     </header>
                     
-                    <!-- Pharmacy Reset Settings -->
+                    <!-- Pharmacy & Data Management -->
                     <div class="form-section" style="margin-bottom: 2rem;">
-                        <h3 class="section-title"><span class="material-symbols-outlined">restart_alt</span> Pharmacy Inventory & Qty Reset</h3>
-                        <p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin-bottom: 1.25rem;">
-                            Reset sold quantity (Qty Reset) to restore original stock levels, or permanently remove all medicines from inventory.
+                        <h3 class="section-title"><span class="material-symbols-outlined">tune</span> Pharmacy & Data Management</h3>
+                        <p style="color: var(--text-muted, #64748b); font-size: 0.88rem; margin-bottom: 1.5rem;">
+                            Manage pharmacy stock levels, inventory, and sales records. These actions are admin-only and cannot be undone.
                         </p>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
-                            <button type="button" class="btn-primary" id="btn-reset-sold-qty" style="background-color: #0284c7; border: none;">
-                                <span class="material-symbols-outlined">published_with_changes</span> Reset Quantity / Stock (Sold Qty Reset)
-                            </button>
-                            <button type="button" class="btn-danger" id="btn-reset-all-medicines">
-                                <span class="material-symbols-outlined">delete_sweep</span> Reset / Delete All Medicines
-                            </button>
-                            <button type="button" class="btn-danger" id="btn-clear-sales-log" style="background-color: #dc2626;">
-                                <span class="material-symbols-outlined">receipt_long</span> Clear Sales Log & History
-                            </button>
+
+                        <div class="settings-actions-grid">
+                            <!-- Reset Sold Qty Card -->
+                            <div class="settings-action-card">
+                                <div class="settings-action-icon" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                                    <span class="material-symbols-outlined">published_with_changes</span>
+                                </div>
+                                <div class="settings-action-info">
+                                    <h4>Reset Sold Quantity</h4>
+                                    <p>Restore remaining stock to original levels by resetting all sold quantities to zero. Medicines are not deleted.</p>
+                                </div>
+                                <button type="button" class="settings-action-btn settings-btn-blue" id="btn-reset-sold-qty">
+                                    <span class="material-symbols-outlined">restart_alt</span> Reset Qty
+                                </button>
+                            </div>
+
+                            <!-- Delete All Medicines Card -->
+                            <div class="settings-action-card">
+                                <div class="settings-action-icon" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+                                    <span class="material-symbols-outlined">delete_sweep</span>
+                                </div>
+                                <div class="settings-action-info">
+                                    <h4>Delete All Medicines</h4>
+                                    <p>Permanently remove all medicines from inventory. This will clear the entire stock database.</p>
+                                </div>
+                                <button type="button" class="settings-action-btn settings-btn-orange" id="btn-reset-all-medicines">
+                                    <span class="material-symbols-outlined">delete_forever</span> Delete All
+                                </button>
+                            </div>
+
+                            <!-- Clear Sales History Card -->
+                            <div class="settings-action-card">
+                                <div class="settings-action-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                                    <span class="material-symbols-outlined">receipt_long</span>
+                                </div>
+                                <div class="settings-action-info">
+                                    <h4>Clear Sales History</h4>
+                                    <p>Delete all pharmacy sales log records and transaction history. Stock quantities are not affected.</p>
+                                </div>
+                                <button type="button" class="settings-action-btn settings-btn-red" id="btn-clear-sales-log">
+                                    <span class="material-symbols-outlined">cleaning_services</span> Clear History
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1293,6 +1326,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=435"></script>
+    <script src="app.js?v=436"></script>
 </body>
 </html>
