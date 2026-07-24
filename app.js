@@ -1928,6 +1928,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    async function clearSalesLogHistory() {
+        if (!confirm('Are you sure you want to permanently clear all Sales Log & History records?')) {
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE}/pharmacy/sales/clear-all`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (response.ok) {
+                showToast(data.message || 'Sales log cleared successfully!');
+                if (typeof fetchSalesLogs === 'function') fetchSalesLogs();
+            } else {
+                showToast(data.detail || 'Failed to clear sales logs.', true);
+            }
+        } catch (error) {
+            console.error('Error clearing sales log:', error);
+            showToast('Error connecting to server.', true);
+        }
+    }
+
+    const btnClearSalesLog = document.getElementById('btn-clear-sales-log');
+    const btnClearSalesLogToolbar = document.getElementById('btn-clear-sales-log-toolbar');
+    if (btnClearSalesLog) btnClearSalesLog.addEventListener('click', clearSalesLogHistory);
+    if (btnClearSalesLogToolbar) btnClearSalesLogToolbar.addEventListener('click', clearSalesLogHistory);
+
     // --- Billing Logic ---
     function loadBilling() {
         const tbody = document.getElementById('billing-tbody');
