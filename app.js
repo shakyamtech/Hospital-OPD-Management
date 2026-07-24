@@ -2974,17 +2974,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Direct Counter Sale Logic (Walk-in Customer) ---
-    function initCounterSaleForm() {
-        const tbody = document.getElementById('counter-bill-tbody');
-        if (!tbody) return;
-        if (tbody.children.length === 0) {
-            tbody.innerHTML = '';
-            addCounterRow('', 1, 0);
-            updateCounterGrandTotal();
-        }
-    }
-
-    window._addCounterRow = function(name = '', qty = 1, rate = 0) {
+    function addCounterRow(name = '', qty = 1, rate = 0) {
         const tbody = document.getElementById('counter-bill-tbody');
         if (!tbody) return;
         const esc = (typeof window.escapeHtml === 'function') ? window.escapeHtml : (s => s || '');
@@ -3001,10 +2991,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof updateCounterGrandTotal === 'function') {
             updateCounterGrandTotal();
         }
+    }
+
+    window._addCounterRow = function(name = '', qty = 1, rate = 0) {
+        addCounterRow(name, qty, rate);
     };
 
-    function addCounterRow(name = '', qty = 1, rate = 0) {
-        window._addCounterRow(name, qty, rate);
+    function initCounterSaleForm() {
+        const tbody = document.getElementById('counter-bill-tbody');
+        if (!tbody) return;
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = '';
+            addCounterRow('', 1, 0);
+        }
     }
 
     window._updateCounterRowTotal = function(inputElem) {
