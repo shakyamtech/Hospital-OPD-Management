@@ -2393,7 +2393,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Pharmacy Bill - ${escapeHtml(patientName)}</title>
+                <title>Pharmacy Bill - ${escapeHtml(patientName)} - ${new Date().toISOString().slice(0,10)}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
                 <style>
                     * { box-sizing: border-box; }
@@ -3097,7 +3097,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Pharmacy Receipt - ${escapeHtml(customerName)}</title>
+                <title>Receipt - ${escapeHtml(customerName)} - ${new Date().toISOString().slice(0,10)}</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
                     .receipt-card { max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
