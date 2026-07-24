@@ -32,9 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtabInventory = document.getElementById('subtab-pharmacy-inventory');
     const subtabPrescriptions = document.getElementById('subtab-pharmacy-prescriptions');
     const subtabSales = document.getElementById('subtab-pharmacy-sales');
+    const subtabCounter = document.getElementById('subtab-pharmacy-counter');
     const viewInventory = document.getElementById('pharmacy-view-inventory');
     const viewPrescriptions = document.getElementById('pharmacy-view-prescriptions');
     const viewSales = document.getElementById('pharmacy-view-sales');
+    const viewCounter = document.getElementById('pharmacy-view-counter');
 
     // Modal
     const patientModal = document.getElementById('patient-modal');
@@ -2096,10 +2098,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const matched = medicinesCache.find(m => m.name.trim().toLowerCase() === val);
         if (matched) {
             inputElem.value = matched.name;
-            const rateInput = tr.querySelector('.pharm-rate');
+            const rateInput = tr.querySelector('.pharm-rate') || tr.querySelector('.counter-rate');
             if (rateInput) {
                 rateInput.value = matched.price || 0;
-                window._updatePharmRowTotal(rateInput);
+                if (tr.querySelector('.pharm-rate') && typeof window._updatePharmRowTotal === 'function') {
+                    window._updatePharmRowTotal(rateInput);
+                } else if (tr.querySelector('.counter-rate') && typeof window._updateCounterRowTotal === 'function') {
+                    window._updateCounterRowTotal(rateInput);
+                }
             }
         }
     };
@@ -2564,16 +2570,19 @@ document.addEventListener('DOMContentLoaded', () => {
         subtabInventory.addEventListener('click', () => switchPharmacySubtab('inventory'));
         subtabPrescriptions.addEventListener('click', () => switchPharmacySubtab('prescriptions'));
         subtabSales.addEventListener('click', () => switchPharmacySubtab('sales'));
+        if (subtabCounter) subtabCounter.addEventListener('click', () => switchPharmacySubtab('counter'));
     }
 
     function switchPharmacySubtab(tabName) {
         if (subtabInventory) subtabInventory.classList.toggle('active', tabName === 'inventory');
         if (subtabPrescriptions) subtabPrescriptions.classList.toggle('active', tabName === 'prescriptions');
         if (subtabSales) subtabSales.classList.toggle('active', tabName === 'sales');
+        if (subtabCounter) subtabCounter.classList.toggle('active', tabName === 'counter');
 
         if (viewInventory) viewInventory.style.display = tabName === 'inventory' ? 'block' : 'none';
         if (viewPrescriptions) viewPrescriptions.style.display = tabName === 'prescriptions' ? 'block' : 'none';
         if (viewSales) viewSales.style.display = tabName === 'sales' ? 'block' : 'none';
+        if (viewCounter) viewCounter.style.display = tabName === 'counter' ? 'block' : 'none';
 
         if (tabName === 'inventory') {
             fetchMedicines();
@@ -2581,6 +2590,9 @@ document.addEventListener('DOMContentLoaded', () => {
             loadPharmacy();
         } else if (tabName === 'sales') {
             fetchSalesLogs();
+        } else if (tabName === 'counter') {
+            fetchMedicines();
+            initCounterSaleForm();
         }
     }
 
@@ -2925,3 +2937,155 @@ document.addEventListener('DOMContentLoaded', () => {
             window._currentProcessingRequestId = requestId;
         }, 100);
     };
+
+    // --- Direct Counter Sale Logic (Walk-in Customer) ---
+    function initCounterSaleForm() {
+        const tbody = document.getElementById('counter-bill-tbody');
+        if (!tbody) return;
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = '';
+            addCounterRow('', 1, 0);
+            updateCounterGrandTotal();
+        }
+    }
+
+    function addCounterRow(name = '', qty = 1, rate = 0) {
+        const tbody = document.getElementById('counter-bill-tbody');
+        if (!tbody) return;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="medicine-row-input counter-name" list="stock-medicines-datalist" value="${escapeHtml(name)}" placeholder="Medicine Name (Type to search stock...)" oninput="window._onPharmNameInput(this)" onchange="window._onPharmNameInput(this)"></td>
+            <td><input type="number" class="medicine-row-input counter-qty" value="${qty}" min="1" oninput="window._updateCounterRowTotal(this)"></td>
+            <td><input type="number" class="medicine-row-input counter-rate" value="${rate}" min="0" step="0.01" oninput="window._updateCounterRowTotal(this)"></td>
+            <td class="counter-row-total-display">Rs ${(qty * rate).toFixed(2)}</td>
+            <td><button class="btn-delete-row" onclick="window._deleteCounterRow(this)"><span class="material-symbols-outlined">delete</span></button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    window._updateCounterRowTotal = function(inputElem) {
+        const tr = inputElem.closest('tr');
+        if (!tr) return;
+        const qty = parseFloat(tr.querySelector('.counter-qty').value) || 0;
+        const rate = parseFloat(tr.querySelector('.counter-rate').value) || 0;
+        const total = qty * rate;
+        const display = tr.querySelector('.counter-row-total-display');
+        if (display) display.textContent = `Rs ${total.toFixed(2)}`;
+        updateCounterGrandTotal();
+    };
+
+    window._deleteCounterRow = function(btn) {
+        btn.closest('tr').remove();
+        updateCounterGrandTotal();
+    };
+
+    function updateCounterGrandTotal() {
+        let total = 0;
+        const rows = document.querySelectorAll('#counter-bill-tbody tr');
+        rows.forEach(tr => {
+            const qty = parseFloat(tr.querySelector('.counter-qty').value) || 0;
+            const rate = parseFloat(tr.querySelector('.counter-rate').value) || 0;
+            total += (qty * rate);
+        });
+
+        const totalElem = document.getElementById('counter-grand-total');
+        if (totalElem) totalElem.textContent = `Rs ${total.toFixed(2)}`;
+    }
+
+    document.getElementById('add-counter-row-btn')?.addEventListener('click', () => {
+        addCounterRow();
+        updateCounterGrandTotal();
+    });
+
+    document.getElementById('counter-reset-btn')?.addEventListener('click', () => {
+        if (confirm('Reset the counter sale form?')) {
+            const custNameInput = document.getElementById('counter-customer-name');
+            const custContactInput = document.getElementById('counter-customer-contact');
+            if (custNameInput) custNameInput.value = 'Walk-in Customer';
+            if (custContactInput) custContactInput.value = '';
+            const tbody = document.getElementById('counter-bill-tbody');
+            if (tbody) tbody.innerHTML = '';
+            addCounterRow('', 1, 0);
+            updateCounterGrandTotal();
+        }
+    });
+
+    document.getElementById('counter-save-print-btn')?.addEventListener('click', async () => {
+        const custNameInput = document.getElementById('counter-customer-name');
+        const custContactInput = document.getElementById('counter-customer-contact');
+        const customerName = (custNameInput && custNameInput.value.trim()) ? custNameInput.value.trim() : 'Walk-in Customer';
+        const contact = (custContactInput && custContactInput.value.trim()) ? custContactInput.value.trim() : '';
+
+        const items = [];
+        let grandTotal = 0;
+        const rows = document.querySelectorAll('#counter-bill-tbody tr');
+        rows.forEach(tr => {
+            const nameInput = tr.querySelector('.counter-name');
+            const qtyInput = tr.querySelector('.counter-qty');
+            const rateInput = tr.querySelector('.counter-rate');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+            const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
+            const total = qty * rate;
+            if (name && qty > 0) {
+                items.push({ name, qty, rate, total });
+                grandTotal += total;
+            }
+        });
+
+        if (items.length === 0) {
+            showToast('Please add at least one medicine item with valid name and quantity.', true);
+            return;
+        }
+
+        const saveBtn = document.getElementById('counter-save-print-btn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Processing...';
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/pharmacy/dispense-direct`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customer_name: customerName,
+                    contact: contact,
+                    items: items,
+                    grand_total: grandTotal
+                })
+            });
+
+            if (response.ok) {
+                showToast('Direct sale completed & stock updated!');
+                
+                const fakePatient = {
+                    id: 'COUNTER-' + Date.now().toString().slice(-6),
+                    personal: { name: customerName, contact: contact, age: 'N/A' },
+                    appointment: { doctor: 'Direct Counter Sale' }
+                };
+
+                if (typeof printPharmacyInvoice === 'function') {
+                    printPharmacyInvoice(fakePatient, items);
+                }
+
+                // Reset form
+                const tbody = document.getElementById('counter-bill-tbody');
+                if (tbody) tbody.innerHTML = '';
+                addCounterRow('', 1, 0);
+                updateCounterGrandTotal();
+                fetchMedicines();
+            } else {
+                const data = await response.json();
+                showToast(data.detail || 'Failed to process direct sale.', true);
+            }
+        } catch (error) {
+            console.error('Error completing direct sale:', error);
+            showToast('Error connecting to server.', true);
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span class="material-symbols-outlined">print</span> Complete & Print Bill';
+            }
+        }
+    });

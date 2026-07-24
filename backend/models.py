@@ -67,3 +67,9 @@ class DispenseRequest(BaseModel):
     items: List[MedicineItem]
     grand_total: float
 
+class DirectDispenseRequest(BaseModel):
+    customer_name: Optional[str] = "Walk-in Customer"
+    contact: Optional[str] = ""
+    items: List[MedicineItem]
+    grand_total: float
+

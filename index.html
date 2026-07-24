@@ -759,6 +759,10 @@
                             <span class="material-symbols-outlined">point_of_sale</span>
                             Sales Log & History
                         </button>
+                        <button class="subtab-btn" id="subtab-pharmacy-counter">
+                            <span class="material-symbols-outlined">shopping_cart</span>
+                            Direct / Counter Sale (Walk-in)
+                        </button>
                     </div>
 
                     <!-- Stock Overview Stats -->
@@ -910,6 +914,71 @@
                                     <!-- Injected by JS -->
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- Direct Counter Sale View (Walk-in Customer) -->
+                    <div id="pharmacy-view-counter" class="pharmacy-subview" style="display: none;">
+                        <div class="glass-panel" style="padding: 1.5rem; margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="material-symbols-outlined" style="color: var(--primary);">shopping_cart</span>
+                                        Direct Counter Sale (Walk-in Customer)
+                                    </h2>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 0 0;">
+                                        Sell medicines directly to outside customers without OPD patient registration.
+                                    </p>
+                                </div>
+                                <button class="btn-secondary" id="counter-reset-btn">
+                                    <span class="material-symbols-outlined">restart_alt</span> Reset Form
+                                </button>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                                <div class="input-group">
+                                    <label for="counter-customer-name">Customer Name</label>
+                                    <input type="text" id="counter-customer-name" placeholder="e.g. Ram Bahadur" value="Walk-in Customer">
+                                </div>
+                                <div class="input-group">
+                                    <label for="counter-customer-contact">Contact Number (Optional)</label>
+                                    <input type="text" id="counter-customer-contact" placeholder="e.g. 9841000000">
+                                </div>
+                            </div>
+
+                            <div class="medicines-billing-section" style="margin-bottom: 1.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h3>Medicine Items</h3>
+                                    <button class="btn-secondary" id="add-counter-row-btn" style="padding: 6px 12px; font-size: 0.85rem;">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add Item
+                                    </button>
+                                </div>
+                                
+                                <table class="data-table" style="margin-bottom: 0;">
+                                    <thead>
+                                        <tr>
+                                            <th>Medicine Name (Search Stock)</th>
+                                            <th style="width: 100px;">Qty</th>
+                                            <th style="width: 120px;">Rate (Rs)</th>
+                                            <th style="width: 140px;">Total (Rs)</th>
+                                            <th style="width: 60px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="counter-bill-tbody">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(13, 148, 136, 0.08); padding: 1.25rem; border-radius: 12px; border: 1px solid rgba(13, 148, 136, 0.2);">
+                                <div>
+                                    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary);">Grand Total:</span>
+                                    <div id="counter-grand-total" style="font-size: 1.75rem; font-weight: 800; color: var(--primary);">Rs 0.00</div>
+                                </div>
+                                <button class="btn-primary" id="counter-save-print-btn" style="padding: 12px 24px; font-size: 1rem; font-weight: 600;">
+                                    <span class="material-symbols-outlined">print</span> Complete & Print Bill
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
 try:
-    from backend.models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest
+    from backend.models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest, DirectDispenseRequest
 except ImportError:
-    from models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest
+    from models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest, DirectDispenseRequest
 
 # Initialize FastAPI app
 app = FastAPI(title="OPD Connect API", description="API for OPD Hospital App")
@@ -347,6 +347,57 @@ async def dispense_medicines(patient_id: str, req: DispenseRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to dispense medicines: {str(e)}")
+
+@app.post("/api/pharmacy/dispense-direct")
+async def dispense_direct_sale(req: DirectDispenseRequest):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured (Service Account missing).")
+    try:
+        # Verify and update medicine stocks
+        medicines_ref = db.collection("medicines")
+        med_docs_stream = medicines_ref.stream()
+        meds_by_name = {}
+        for d in med_docs_stream:
+            m_dict = d.to_dict()
+            m_dict["_doc_id"] = d.id
+            meds_by_name[m_dict.get("name", "").strip().lower()] = m_dict
+
+        # Process each item
+        for item in req.items:
+            m_name_lower = item.name.strip().lower()
+            matched_med = meds_by_name.get(m_name_lower)
+            if matched_med:
+                doc_id = matched_med["_doc_id"]
+                current_rem = matched_med.get("remaining_stock", 0)
+                current_sold = matched_med.get("sold_qty", 0)
+                
+                new_rem = max(0, current_rem - item.qty)
+                new_sold = current_sold + item.qty
+                
+                medicines_ref.document(doc_id).update({
+                    "remaining_stock": new_rem,
+                    "sold_qty": new_sold
+                })
+
+        # Record sales log
+        import datetime
+        items_dict = [it.model_dump() for it in req.items]
+        cust_name = req.customer_name.strip() if req.customer_name and req.customer_name.strip() else "Walk-in Customer"
+        sale_log = {
+            "patient_id": "COUNTER-SALE",
+            "patient_name": cust_name,
+            "contact": req.contact or "",
+            "items": items_dict,
+            "grand_total": req.grand_total,
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        db.collection("pharmacy_sales").document().set(sale_log)
+
+        return {"message": "Direct sale processed and stock updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process direct sale: {str(e)}")
 
 @app.post("/api/pharmacy/medicines/reset-sold-qty")
 async def reset_sold_qty():
