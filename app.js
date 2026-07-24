@@ -3054,7 +3054,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    document.getElementById('counter-save-print-btn')?.addEventListener('click', async () => {
+    window._saveAndPrintCounterBill = async function() {
         const custNameInput = document.getElementById('counter-customer-name');
         const custContactInput = document.getElementById('counter-customer-contact');
         const customerName = (custNameInput && custNameInput.value.trim()) ? custNameInput.value.trim() : 'Walk-in Customer';
@@ -3118,7 +3118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (tbody) tbody.innerHTML = '';
                 addCounterRow('', 1, 0);
                 updateCounterGrandTotal();
-                fetchMedicines();
+                if (typeof fetchMedicines === 'function') fetchMedicines();
             } else {
                 const data = await response.json();
                 showToast(data.detail || 'Failed to process direct sale.', true);
@@ -3132,4 +3132,4 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveBtn.innerHTML = '<span class="material-symbols-outlined">print</span> Complete & Print Bill';
             }
         }
-    });
+    };
