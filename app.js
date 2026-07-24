@@ -959,6 +959,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const g = patient.guardian || {};
         const m = patient.medical || {};
         const a = patient.appointment || {};
+        const patientName = (p.name || 'Patient').trim();
         
         const today = new Date().toLocaleDateString('en-US', {
             year: 'numeric',
@@ -972,7 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>OPD Invoice - ${escapeHtml(p.name || 'Patient')}</title>
+                <title>OPD Invoice - ${escapeHtml(patientName)}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
                 <style>
                     * { box-sizing: border-box; }
@@ -1254,9 +1255,17 @@ document.addEventListener('DOMContentLoaded', () => {
         iframeDoc.write(invoiceHtml);
         iframeDoc.close();
 
+        const originalTitle = document.title;
+        const printTitle = `OPD Invoice - ${patientName}`;
+        document.title = printTitle;
+        iframeDoc.title = printTitle;
+
         setTimeout(() => {
             iframe.contentWindow.focus();
             iframe.contentWindow.print();
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 1000);
         }, 250);
     }
 
@@ -2225,6 +2234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const p = patient.personal || {};
         const a = patient.appointment || {};
+        const patientName = (p.name || 'Patient').trim();
 
         const today = new Date().toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric',
@@ -2250,7 +2260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Pharmacy Invoice - ${escapeHtml(p.name || 'Patient')}</title>
+                <title>Pharmacy Bill - ${escapeHtml(patientName)}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
                 <style>
                     * { box-sizing: border-box; }
@@ -2463,9 +2473,17 @@ document.addEventListener('DOMContentLoaded', () => {
         iframeDoc.write(invoiceHtml);
         iframeDoc.close();
 
+        const originalTitle = document.title;
+        const printTitle = `Pharmacy Bill - ${patientName}`;
+        document.title = printTitle;
+        iframeDoc.title = printTitle;
+
         setTimeout(() => {
             iframe.contentWindow.focus();
             iframe.contentWindow.print();
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 1000);
         }, 250);
     };
 

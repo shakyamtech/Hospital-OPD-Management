@@ -400,9 +400,26 @@ async def get_pharmacy_sales():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve sales logs: {str(e)}")
 
+@app.post("/api/pharmacy/sales/clear-all")
+@app.delete("/api/pharmacy/sales/clear-all")
+async def clear_all_sales_logs():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        sales_ref = db.collection("pharmacy_sales")
+        docs = list(sales_ref.stream())
+        deleted_count = 0
+        for doc in docs:
+            doc.reference.delete()
+            deleted_count += 1
+        return {"message": f"All {deleted_count} sales log(s) cleared.", "count": deleted_count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear sales logs: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+
 
 
