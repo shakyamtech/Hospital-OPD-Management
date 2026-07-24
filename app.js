@@ -3028,13 +3028,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    document.getElementById('add-counter-row-btn')?.addEventListener('click', () => {
-        window._addCounterRow();
-    });
-
-    document.getElementById('counter-reset-btn')?.addEventListener('click', () => {
-        window._resetCounterForm();
-    });
 
     document.getElementById('counter-save-print-btn')?.addEventListener('click', async () => {
         const custNameInput = document.getElementById('counter-customer-name');
