@@ -474,6 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     modalDeleteBtn.addEventListener('click', () => {
+        if (localStorage.getItem('opd_role') !== 'admin') {
+            showToast('Only admin can delete patients.', true);
+            return;
+        }
         if (currentViewPatient) {
             closeModal();
             showDeleteConfirm(currentViewPatient.id, currentViewPatient.personal?.name || 'this patient');
@@ -677,10 +681,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="material-symbols-outlined">edit</span>
                                 Edit
                             </button>
-                            <button class="btn-action delete" onclick="window._deletePatient('${p.id}', '${escapeHtml(name)}')" title="Delete">
+                            ${(localStorage.getItem('opd_role') === 'admin') ? `<button class="btn-action delete" onclick="window._deletePatient('${p.id}', '${escapeHtml(name)}')" title="Delete">
                                 <span class="material-symbols-outlined">delete</span>
                                 Delete
-                            </button>
+                            </button>` : ''}
                         </div>
                     </td>
                 </tr>`;
@@ -718,6 +722,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const g = patient.guardian || {};
         const m = patient.medical || {};
         const a = patient.appointment || {};
+
+        // Hide delete button for non-admin
+        if (modalDeleteBtn) {
+            modalDeleteBtn.style.display = (localStorage.getItem('opd_role') === 'admin') ? '' : 'none';
+        }
 
         modalBody.innerHTML = `
             <div class="detail-section">
@@ -1730,7 +1739,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const patient = patientsCache.find(p => p.id === id);
         if (patient) editPatient(patient);
     };
-    window._deletePatient = (id, name) => showDeleteConfirm(id, name);
+    window._deletePatient = (id, name) => {
+        if (localStorage.getItem('opd_role') !== 'admin') {
+            showToast('Only admin can delete patients.', true);
+            return;
+        }
+        showDeleteConfirm(id, name);
+    };
 
     // --- Doctor Management Logic ---
     async function fetchDoctors() {
