@@ -1,4 +1,13 @@
+// Helper function for HTML escaping
+window.escapeHtml = function(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+
     // --- Configuration ---
     const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000/api' : 'https://hospital-opd-management.onrender.com/api';
 
@@ -2949,18 +2958,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addCounterRow(name = '', qty = 1, rate = 0) {
+    window._addCounterRow = function(name = '', qty = 1, rate = 0) {
         const tbody = document.getElementById('counter-bill-tbody');
         if (!tbody) return;
+        const esc = (typeof window.escapeHtml === 'function') ? window.escapeHtml : (s => s || '');
+        const safeName = esc(name || '');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" class="medicine-row-input counter-name" list="stock-medicines-datalist" value="${escapeHtml(name)}" placeholder="Medicine Name (Type to search stock...)" oninput="window._onPharmNameInput(this)" onchange="window._onPharmNameInput(this)"></td>
+            <td><input type="text" class="medicine-row-input counter-name" list="stock-medicines-datalist" value="${safeName}" placeholder="Medicine Name (Type to search stock...)" oninput="window._onPharmNameInput(this)" onchange="window._onPharmNameInput(this)"></td>
             <td><input type="number" class="medicine-row-input counter-qty" value="${qty}" min="1" oninput="window._updateCounterRowTotal(this)"></td>
             <td><input type="number" class="medicine-row-input counter-rate" value="${rate}" min="0" step="0.01" oninput="window._updateCounterRowTotal(this)"></td>
             <td class="counter-row-total-display">Rs ${(qty * rate).toFixed(2)}</td>
-            <td><button class="btn-delete-row" onclick="window._deleteCounterRow(this)"><span class="material-symbols-outlined">delete</span></button></td>
+            <td><button type="button" class="btn-delete-row" onclick="window._deleteCounterRow(this)"><span class="material-symbols-outlined">delete</span></button></td>
         `;
         tbody.appendChild(tr);
+        if (typeof updateCounterGrandTotal === 'function') {
+            updateCounterGrandTotal();
+        }
+    };
+
+    function addCounterRow(name = '', qty = 1, rate = 0) {
+        window._addCounterRow(name, qty, rate);
     }
 
     window._updateCounterRowTotal = function(inputElem) {
