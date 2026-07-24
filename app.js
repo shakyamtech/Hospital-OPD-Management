@@ -6,6 +6,28 @@ window.escapeHtml = function(str) {
     return div.innerHTML;
 };
 
+// Global Configuration & Utilities
+window.API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000/api' : 'https://hospital-opd-management.onrender.com/api';
+
+window.showToast = function(message, isError = false) {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    if (!toast || !toastMessage) {
+        if (message) alert(message);
+        return;
+    }
+    toastMessage.textContent = message;
+    if (isError) {
+        toast.style.backgroundColor = '#ef4444';
+    } else {
+        toast.style.backgroundColor = '#10b981';
+    }
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Configuration ---
@@ -3165,7 +3187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (items.length === 0) {
-            showToast('Please add at least one medicine item with valid name and quantity.', true);
+            window.showToast('Please add at least one medicine item with valid name and quantity.', true);
             return;
         }
 
@@ -3176,7 +3198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(`${API_BASE}/pharmacy/dispense-direct`, {
+            const apiBaseUrl = window.API_BASE || 'http://127.0.0.1:8000/api';
+            const response = await fetch(`${apiBaseUrl}/pharmacy/dispense-direct`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -3188,7 +3211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                showToast('Direct sale completed & stock updated!');
+                window.showToast('Direct sale completed & stock updated!');
                 
                 try {
                     printPharmacyReceipt(customerName, contact, items, grandTotal);
@@ -3205,11 +3228,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof fetchSalesLogs === 'function') fetchSalesLogs();
             } else {
                 const data = await response.json();
-                showToast(data.detail || 'Failed to process direct sale.', true);
+                window.showToast(data.detail || 'Failed to process direct sale.', true);
             }
         } catch (error) {
             console.error('Error completing direct sale:', error);
-            showToast('Error connecting to server.', true);
+            window.showToast('Error connecting to server.', true);
         } finally {
             if (saveBtn) {
                 saveBtn.disabled = false;
