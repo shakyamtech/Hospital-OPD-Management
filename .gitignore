@@ -2,6 +2,8 @@
 backend/serviceAccountKey.json
 *.json.key
 secrets.txt
+.env
+.env.*
 
 # Python Cache
 **/__pycache__/
