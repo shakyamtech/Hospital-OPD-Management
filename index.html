@@ -930,7 +930,7 @@
                                         Sell medicines directly to outside customers without OPD patient registration.
                                     </p>
                                 </div>
-                                <button class="btn-secondary" id="counter-reset-btn">
+                                <button type="button" class="btn-secondary" id="counter-reset-btn" onclick="window._resetCounterForm()">
                                     <span class="material-symbols-outlined">restart_alt</span> Reset Form
                                 </button>
                             </div>
@@ -949,7 +949,7 @@
                             <div class="medicines-billing-section" style="margin-bottom: 1.5rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <h3>Medicine Items</h3>
-                                    <button class="btn-secondary" id="add-counter-row-btn" style="padding: 6px 12px; font-size: 0.85rem;">
+                                    <button type="button" class="btn-secondary" id="add-counter-row-btn" onclick="window._addCounterRow()" style="padding: 6px 12px; font-size: 0.85rem;">
                                         <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add Item
                                     </button>
                                 </div>

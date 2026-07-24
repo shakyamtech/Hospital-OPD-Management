@@ -2992,12 +2992,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (totalElem) totalElem.textContent = `Rs ${total.toFixed(2)}`;
     }
 
-    document.getElementById('add-counter-row-btn')?.addEventListener('click', () => {
-        addCounterRow();
+    window._addCounterRow = function(name = '', qty = 1, rate = 0) {
+        addCounterRow(name, qty, rate);
         updateCounterGrandTotal();
-    });
+    };
 
-    document.getElementById('counter-reset-btn')?.addEventListener('click', () => {
+    window._resetCounterForm = function() {
         if (confirm('Reset the counter sale form?')) {
             const custNameInput = document.getElementById('counter-customer-name');
             const custContactInput = document.getElementById('counter-customer-contact');
@@ -3008,6 +3008,14 @@ document.addEventListener('DOMContentLoaded', () => {
             addCounterRow('', 1, 0);
             updateCounterGrandTotal();
         }
+    };
+
+    document.getElementById('add-counter-row-btn')?.addEventListener('click', () => {
+        window._addCounterRow();
+    });
+
+    document.getElementById('counter-reset-btn')?.addEventListener('click', () => {
+        window._resetCounterForm();
     });
 
     document.getElementById('counter-save-print-btn')?.addEventListener('click', async () => {
