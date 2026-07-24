@@ -2070,7 +2070,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentPharmacyPatientId = null;
 
-    window._managePharmacyBill = function(id) {
+    function updateStockMedicinesDatalist() {
+        const datalist = document.getElementById('stock-medicines-datalist');
+        if (!datalist) return;
+        if (!medicinesCache || medicinesCache.length === 0) {
+            datalist.innerHTML = '';
+            return;
+        }
+
+        datalist.innerHTML = medicinesCache.map(m => {
+            const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - (m.sold_qty || 0));
+            const price = parseFloat(m.price || 0).toFixed(2);
+            return `<option value="${escapeHtml(m.name)}">Stock: ${rem} | Rs ${price}</option>`;
+        }).join('');
+    }
+
+    window._onPharmNameInput = function(inputElem) {
+        if (!inputElem) return;
+        const val = inputElem.value.trim().toLowerCase();
+        if (!val) return;
+
+        const tr = inputElem.closest('tr');
+        if (!tr) return;
+
+        const matched = medicinesCache.find(m => m.name.trim().toLowerCase() === val);
+        if (matched) {
+            inputElem.value = matched.name;
+            const rateInput = tr.querySelector('.pharm-rate');
+            if (rateInput) {
+                rateInput.value = matched.price || 0;
+                window._updatePharmRowTotal(rateInput);
+            }
+        }
+    };
+
+    window._managePharmacyBill = async function(id) {
         const patient = patientsCache.find(p => p.id === id);
         if (!patient) return;
 
@@ -2079,15 +2113,51 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('pharm-patient-name').textContent = escapeHtml(patient.personal?.name || 'Unknown');
         document.getElementById('pharm-doctor-name').textContent = escapeHtml(formatDoctor(patient.appointment?.doctor));
         
+        if (!medicinesCache || medicinesCache.length === 0) {
+            try {
+                const response = await fetch(`${API_BASE}/pharmacy/medicines`);
+                if (response.ok) {
+                    const data = await response.json();
+                    medicinesCache = data.medicines || [];
+                    updateStockMedicinesDatalist();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            updateStockMedicinesDatalist();
+        }
+
         const tbody = document.getElementById('pharmacy-bill-tbody');
         tbody.innerHTML = '';
         
         if (patient.appointment?.pharmacyBill && patient.appointment.pharmacyBill.length > 0) {
-            patient.appointment.pharmacyBill.forEach(med => addPharmacyRow(med.name, med.qty, med.rate));
+            patient.appointment.pharmacyBill.forEach(med => {
+                let r = med.rate;
+                let n = med.name;
+                if ((r === 0 || !r) && medicinesCache.length > 0) {
+                    const m = medicinesCache.find(x => x.name.toLowerCase().trim() === n.toLowerCase().trim());
+                    if (m) r = m.price || 0;
+                }
+                addPharmacyRow(n, med.qty, r);
+            });
         } else if (patient.medical?.medicines) {
             const meds = patient.medical.medicines.split(/[,;\n]+/).map(m => m.trim()).filter(m => m.length > 0);
             if (meds.length > 0) {
-                meds.forEach(medName => addPharmacyRow(medName, 1, 0));
+                meds.forEach(medName => {
+                    let matchedRate = 0;
+                    let finalName = medName;
+                    if (medicinesCache && medicinesCache.length > 0) {
+                        const norm = medName.toLowerCase().trim();
+                        const match = medicinesCache.find(m => m.name.toLowerCase().trim() === norm) 
+                                   || medicinesCache.find(m => norm.includes(m.name.toLowerCase().trim()) || m.name.toLowerCase().trim().includes(norm));
+                        if (match) {
+                            finalName = match.name;
+                            matchedRate = match.price || 0;
+                        }
+                    }
+                    addPharmacyRow(finalName, 1, matchedRate);
+                });
             } else {
                 addPharmacyRow('', 1, 0);
             }
@@ -2103,7 +2173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('pharmacy-bill-tbody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" class="medicine-row-input pharm-name" value="${escapeHtml(name)}" placeholder="Medicine Name"></td>
+            <td><input type="text" class="medicine-row-input pharm-name" list="stock-medicines-datalist" value="${escapeHtml(name)}" placeholder="Medicine Name (Type to search stock...)" oninput="window._onPharmNameInput(this)" onchange="window._onPharmNameInput(this)"></td>
             <td><input type="number" class="medicine-row-input pharm-qty" value="${qty}" min="1" oninput="window._updatePharmRowTotal(this)"></td>
             <td><input type="number" class="medicine-row-input pharm-rate" value="${rate}" min="0" step="0.01" oninput="window._updatePharmRowTotal(this)"></td>
             <td class="row-total-display">Rs ${(qty * rate).toFixed(2)}</td>
@@ -2522,6 +2592,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 medicinesCache = data.medicines || [];
                 renderInventory();
                 renderPharmacyStats();
+                if (typeof updateStockMedicinesDatalist === 'function') {
+                    updateStockMedicinesDatalist();
+                }
             }
         } catch (error) {
             console.error('Error fetching medicines:', error);
