@@ -3054,6 +3054,93 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
+    function printPharmacyReceipt(customerName, contact, items, grandTotal) {
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        if (!printWindow) {
+            alert('Pop-up blocked! Please allow pop-ups for this site to print receipts.');
+            return;
+        }
+
+        const dateStr = new Date().toLocaleString();
+        let itemsHtml = items.map(item => `
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(item.name)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.qty}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">Rs ${(parseFloat(item.rate) || 0).toFixed(2)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">Rs ${(parseFloat(item.total) || 0).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Pharmacy Receipt - ${escapeHtml(customerName)}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                    .receipt-card { max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+                    .header { text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px; }
+                    .header h2 { margin: 0; color: #0284c7; font-size: 24px; }
+                    .header p { margin: 4px 0 0 0; color: #64748b; font-size: 14px; }
+                    .info-grid { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #475569; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    th { background: #f8fafc; padding: 10px; text-align: left; font-size: 13px; text-transform: uppercase; color: #475569; border-bottom: 2px solid #cbd5e1; }
+                    .total-box { text-align: right; font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 15px; border-top: 2px solid #0284c7; padding-top: 10px; }
+                    .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 15px; }
+                    @media print {
+                        body { padding: 0; }
+                        .receipt-card { border: none; box-shadow: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-card">
+                    <div class="header">
+                        <h2>Hospital OPD Pharmacy</h2>
+                        <p>Direct Counter Sale Receipt</p>
+                    </div>
+                    <div class="info-grid">
+                        <div>
+                            <strong>Customer:</strong> ${escapeHtml(customerName)}<br>
+                            ${contact ? `<strong>Contact:</strong> ${escapeHtml(contact)}` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>Date & Time:</strong> ${dateStr}
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Medicine Item</th>
+                                <th style="text-align: center;">Qty</th>
+                                <th style="text-align: right;">Rate</th>
+                                <th style="text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                    <div class="total-box">
+                        Grand Total: Rs ${(parseFloat(grandTotal) || 0).toFixed(2)}
+                    </div>
+                    <div class="footer">
+                        <p>Thank you for visiting! Wish you good health.</p>
+                        <p style="margin-top: 5px;">This is a computer generated receipt.</p>
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        setTimeout(function() { window.close(); }, 500);
+                    };
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
     window._saveAndPrintCounterBill = async function() {
         const custNameInput = document.getElementById('counter-customer-name');
         const custContactInput = document.getElementById('counter-customer-contact');
@@ -3068,7 +3155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const qtyInput = tr.querySelector('.counter-qty');
             const rateInput = tr.querySelector('.counter-rate');
             const name = nameInput ? nameInput.value.trim() : '';
-            const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+            const qty = Math.round(parseFloat(qtyInput ? qtyInput.value : 0) || 0);
             const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
             const total = qty * rate;
             if (name && qty > 0) {
@@ -3103,14 +3190,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 showToast('Direct sale completed & stock updated!');
                 
-                const fakePatient = {
-                    id: 'COUNTER-' + Date.now().toString().slice(-6),
-                    personal: { name: customerName, contact: contact, age: 'N/A' },
-                    appointment: { doctor: 'Direct Counter Sale' }
-                };
-
-                if (typeof printPharmacyInvoice === 'function') {
-                    printPharmacyInvoice(fakePatient, items);
+                try {
+                    printPharmacyReceipt(customerName, contact, items, grandTotal);
+                } catch (e) {
+                    console.error('Printing receipt failed:', e);
                 }
 
                 // Reset form
@@ -3119,6 +3202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 addCounterRow('', 1, 0);
                 updateCounterGrandTotal();
                 if (typeof fetchMedicines === 'function') fetchMedicines();
+                if (typeof fetchSalesLogs === 'function') fetchSalesLogs();
             } else {
                 const data = await response.json();
                 showToast(data.detail || 'Failed to process direct sale.', true);
