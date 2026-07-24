@@ -1846,6 +1846,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- Pharmacy Reset Handlers (Settings Tab) ---
+    const btnResetSoldQty = document.getElementById('btn-reset-sold-qty');
+    const btnResetAllMedicines = document.getElementById('btn-reset-all-medicines');
+
+    if (btnResetSoldQty) {
+        btnResetSoldQty.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to reset sold quantities for all medicines?\nRemaining stock will be restored back to total stock.')) {
+                return;
+            }
+            try {
+                btnResetSoldQty.disabled = true;
+                btnResetSoldQty.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Resetting...';
+                const response = await fetch(`${API_BASE}/pharmacy/medicines/reset-sold-qty`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(data.message || 'Sold quantities reset successfully!');
+                    if (typeof fetchMedicines === 'function') fetchMedicines();
+                } else {
+                    showToast(data.detail || 'Failed to reset sold quantities.');
+                }
+            } catch (error) {
+                console.error('Error resetting sold quantities:', error);
+                showToast('Error connecting to server.');
+            } finally {
+                btnResetSoldQty.disabled = false;
+                btnResetSoldQty.innerHTML = '<span class="material-symbols-outlined">published_with_changes</span> Reset Quantity / Stock (Sold Qty Reset)';
+            }
+        });
+    }
+
+    if (btnResetAllMedicines) {
+        btnResetAllMedicines.addEventListener('click', async () => {
+            const confirmText = prompt('WARNING: This will permanently delete ALL medicines from the pharmacy inventory!\n\nTo confirm, please type "RESET" below:');
+            if (confirmText !== 'RESET') {
+                if (confirmText !== null) showToast('Reset cancelled. Confirmation text did not match.');
+                return;
+            }
+            try {
+                btnResetAllMedicines.disabled = true;
+                btnResetAllMedicines.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Resetting...';
+                const response = await fetch(`${API_BASE}/pharmacy/medicines/clear-all`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(data.message || 'All medicines deleted successfully!');
+                    if (typeof fetchMedicines === 'function') fetchMedicines();
+                } else {
+                    showToast(data.detail || 'Failed to delete all medicines.');
+                }
+            } catch (error) {
+                console.error('Error deleting all medicines:', error);
+                showToast('Error connecting to server.');
+            } finally {
+                btnResetAllMedicines.disabled = false;
+                btnResetAllMedicines.innerHTML = '<span class="material-symbols-outlined">delete_sweep</span> Reset / Delete All Medicines';
+            }
+        });
+    }
+
     // --- Billing Logic ---
     function loadBilling() {
         const tbody = document.getElementById('billing-tbody');

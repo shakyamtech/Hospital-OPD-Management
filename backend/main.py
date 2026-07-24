@@ -3,7 +3,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
-from models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest
+try:
+    from backend.models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest
+except ImportError:
+    from models import Patient, Doctor, AppointmentRequest, Medicine, DispenseRequest
 
 # Initialize FastAPI app
 app = FastAPI(title="OPD Connect API", description="API for OPD Hospital App")
@@ -18,8 +21,8 @@ app.add_middleware(
 )
 
 # Initialize Firebase
-# Ensure you download your service account key and place it in the backend folder as 'serviceAccountKey.json'
-SERVICE_ACCOUNT_FILE = "serviceAccountKey.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "serviceAccountKey.json")
 
 try:
     if os.path.exists(SERVICE_ACCOUNT_FILE):
@@ -345,6 +348,42 @@ async def dispense_medicines(patient_id: str, req: DispenseRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to dispense medicines: {str(e)}")
 
+@app.post("/api/pharmacy/medicines/reset-sold-qty")
+async def reset_sold_qty():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        meds_ref = db.collection("medicines")
+        docs = list(meds_ref.stream())
+        reset_count = 0
+        for doc in docs:
+            m = doc.to_dict()
+            total_stock = m.get("total_stock", 0)
+            doc.reference.update({
+                "sold_qty": 0,
+                "remaining_stock": total_stock
+            })
+            reset_count += 1
+        return {"message": f"Sold quantities reset for {reset_count} medicine(s).", "count": reset_count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reset sold quantities: {str(e)}")
+
+@app.post("/api/pharmacy/medicines/clear-all")
+@app.delete("/api/pharmacy/medicines/clear-all")
+async def clear_all_medicines():
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        meds_ref = db.collection("medicines")
+        docs = list(meds_ref.stream())
+        deleted_count = 0
+        for doc in docs:
+            doc.reference.delete()
+            deleted_count += 1
+        return {"message": f"All {deleted_count} medicine(s) removed from inventory.", "count": deleted_count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear all medicines: {str(e)}")
+
 @app.get("/api/pharmacy/sales")
 async def get_pharmacy_sales():
     if db is None:
@@ -363,5 +402,7 @@ async def get_pharmacy_sales():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+
 

@@ -13,25 +13,24 @@
         #debug-console { position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; background: rgba(0,0,0,0.8); color: lime; font-family: monospace; z-index: 9999; overflow-y: auto; padding: 10px; display: none; }
     </style>
     <script>
+        // Immediately show any JS errors on screen for debugging
+        function _showDebug(msg) {
+            try {
+                var debug = document.getElementById('debug-console');
+                if (!debug && document.body) {
+                    debug = document.createElement('div');
+                    debug.id = 'debug-console';
+                    debug.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;max-height:200px;background:rgba(0,0,0,0.85);color:lime;font-family:monospace;font-size:13px;z-index:99999;overflow-y:auto;padding:10px;';
+                    document.body.appendChild(debug);
+                }
+                if (debug) debug.innerHTML += msg + '<br>';
+            } catch(ex) {}
+        }
         window.addEventListener('error', function(e) {
-            let debug = document.getElementById('debug-console');
-            if(!debug) {
-                debug = document.createElement('div');
-                debug.id = 'debug-console';
-                document.body.appendChild(debug);
-                debug.style.display = 'block';
-            }
-            debug.innerHTML += e.message + ' at ' + e.filename + ':' + e.lineno + '<br>';
+            _showDebug('ERROR: ' + e.message + ' @ ' + e.filename + ':' + e.lineno);
         });
         window.addEventListener('unhandledrejection', function(e) {
-            let debug = document.getElementById('debug-console');
-            if(!debug) {
-                debug = document.createElement('div');
-                debug.id = 'debug-console';
-                document.body.appendChild(debug);
-                debug.style.display = 'block';
-            }
-            debug.innerHTML += 'Promise rejection: ' + e.reason + '<br>';
+            _showDebug('PROMISE REJECTION: ' + e.reason);
         });
 
         // Immediate FOUC prevention (Eliminates Homepage Flashing)
@@ -828,6 +827,10 @@
                                 <span class="material-symbols-outlined">refresh</span>
                                 Refresh
                             </button>
+                            <button class="btn-icon-labeled btn-danger-soft" id="inventory-reset-sold-btn" title="Reset all sold quantities to zero">
+                                <span class="material-symbols-outlined">restart_alt</span>
+                                Reset Sold Qty
+                            </button>
                         </div>
                         <div class="glass-panel table-container">
                             <table class="data-table">
@@ -915,10 +918,27 @@
                 <div id="section-settings" class="tab-section">
                     <header class="page-header">
                         <div class="header-titles">
-                            <h1>Settings (Manage Doctors)</h1>
-                            <p>Add or remove doctors from the system.</p>
+                            <h1>Settings & System Management</h1>
+                            <p>Manage doctors, pharmacy stock resets, and system configuration.</p>
                         </div>
                     </header>
+                    
+                    <!-- Pharmacy Reset Settings -->
+                    <div class="form-section" style="margin-bottom: 2rem;">
+                        <h3 class="section-title"><span class="material-symbols-outlined">restart_alt</span> Pharmacy Inventory & Qty Reset</h3>
+                        <p style="color: var(--text-muted, #64748b); font-size: 0.9rem; margin-bottom: 1.25rem;">
+                            Reset sold quantity (Qty Reset) to restore original stock levels, or permanently remove all medicines from inventory.
+                        </p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                            <button type="button" class="btn-primary" id="btn-reset-sold-qty" style="background-color: #0284c7; border: none;">
+                                <span class="material-symbols-outlined">published_with_changes</span> Reset Quantity / Stock (Sold Qty Reset)
+                            </button>
+                            <button type="button" class="btn-danger" id="btn-reset-all-medicines">
+                                <span class="material-symbols-outlined">delete_sweep</span> Reset / Delete All Medicines
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="form-section">
                         <h3 class="section-title"><span class="material-symbols-outlined">person_add</span> Add New Doctor</h3>
                         <form id="add-doctor-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">

@@ -986,6 +986,11 @@ body {
     to { transform: rotate(360deg); }
 }
 
+.spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
 .table-empty p,
 .table-loading p {
     font-size: 0.95rem;
