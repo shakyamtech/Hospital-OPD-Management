@@ -2845,6 +2845,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('filter-stock-status')?.addEventListener('change', renderInventory);
     document.getElementById('inventory-refresh-btn')?.addEventListener('click', fetchMedicines);
 
+    document.getElementById('card-stat-total')?.addEventListener('click', () => {
+        const filterSelect = document.getElementById('filter-stock-status');
+        if (filterSelect) {
+            filterSelect.value = '';
+            renderInventory();
+        }
+    });
+
+    document.getElementById('card-stat-low-stock')?.addEventListener('click', () => {
+        const filterSelect = document.getElementById('filter-stock-status');
+        if (filterSelect) {
+            filterSelect.value = 'lowstock';
+            renderInventory();
+        }
+    });
+
     document.getElementById('card-stat-expiry')?.addEventListener('click', () => {
         const filterSelect = document.getElementById('filter-stock-status');
         if (filterSelect) {

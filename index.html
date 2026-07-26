@@ -767,7 +767,7 @@
 
                     <!-- Stock Overview Stats -->
                     <div class="stats-grid" id="pharmacy-stats-dashboard">
-                        <div class="stat-card">
+                        <div class="stat-card" id="card-stat-total" style="cursor: pointer;" title="Click to view all medicines">
                             <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
                                 <span class="material-symbols-outlined">medication</span>
                             </div>
@@ -794,7 +794,7 @@
                                 <p id="stat-remaining-stock">0 units</p>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" id="card-stat-low-stock" style="cursor: pointer;" title="Click to filter low stock medicines">
                             <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
                                 <span class="material-symbols-outlined">warning</span>
                             </div>
@@ -1337,6 +1337,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=441"></script>
+    <script src="app.js?v=442"></script>
 </body>
 </html>
