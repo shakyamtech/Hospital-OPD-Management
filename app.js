@@ -2685,6 +2685,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function formatExpiryDateBadge(dateStr) {
+        if (!dateStr) return '<span style="color: #94a3b8;">—</span>';
+        
+        const parts = dateStr.split('-');
+        let formattedDate = dateStr;
+        let expDate = null;
+        
+        if (parts.length === 3) {
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1;
+            const day = parseInt(parts[2]);
+            expDate = new Date(year, month, day);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            if (!isNaN(expDate.getTime())) {
+                const dayStr = String(day).padStart(2, '0');
+                formattedDate = `${dayStr} ${months[month]} ${year}`;
+            }
+        } else {
+            expDate = new Date(dateStr);
+        }
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (expDate && !isNaN(expDate.getTime())) {
+            if (expDate < today) {
+                return `<span class="badge-expiry-expired" title="Expired!"><span class="material-symbols-outlined" style="font-size:14px;">event_busy</span> ${formattedDate} (Expired)</span>`;
+            }
+            const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+            if (expDate <= thirtyDaysFromNow) {
+                return `<span class="badge-expiry-near" title="Expiring Soon (< 30 days)"><span class="material-symbols-outlined" style="font-size:14px;">schedule</span> ${formattedDate} (Expiring Soon)</span>`;
+            }
+        }
+        
+        return `<span class="badge-expiry"><span class="material-symbols-outlined" style="font-size:14px; color:#64748b;">calendar_month</span> ${formattedDate}</span>`;
+    }
+
     function renderInventory() {
         const tbody = document.getElementById('inventory-tbody');
         if (!tbody) return;
@@ -2710,7 +2747,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem;">No medicines found. Click "Add Medicine / Restock" to add items.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No medicines found. Click "Add Medicine / Restock" to add items.</td></tr>`;
             return;
         }
 
@@ -2735,6 +2772,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${m.total_stock}</td>
                     <td><strong style="color: #10b981;">${sold} units</strong></td>
                     <td><strong style="color: ${rem <= minAlert ? '#dc2626' : '#3b82f6'};">${rem} units</strong></td>
+                    <td style="white-space: nowrap;">${formatExpiryDateBadge(m.expiry_date)}</td>
                     <td>${statusBadge}</td>
                     <td>
                         <div class="action-buttons">
