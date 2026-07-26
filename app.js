@@ -2737,11 +2737,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const minAlert = m.min_stock_alert || 10;
 
             if (statusFilter === 'instock') {
-                matchesStatus = rem > minAlert;
+                matchesStatus = rem > 0;
             } else if (statusFilter === 'lowstock') {
                 matchesStatus = rem > 0 && rem <= minAlert;
             } else if (statusFilter === 'outstock') {
                 matchesStatus = rem <= 0;
+            } else if (statusFilter === 'sold') {
+                matchesStatus = (m.sold_qty || 0) > 0;
             } else if (statusFilter === 'expiring') {
                 if (!m.expiry_date) {
                     matchesStatus = false;
@@ -2849,6 +2851,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterSelect = document.getElementById('filter-stock-status');
         if (filterSelect) {
             filterSelect.value = '';
+            renderInventory();
+        }
+    });
+
+    document.getElementById('card-stat-sold')?.addEventListener('click', () => {
+        const filterSelect = document.getElementById('filter-stock-status');
+        if (filterSelect) {
+            filterSelect.value = 'sold';
+            renderInventory();
+        }
+    });
+
+    document.getElementById('card-stat-remaining')?.addEventListener('click', () => {
+        const filterSelect = document.getElementById('filter-stock-status');
+        if (filterSelect) {
+            filterSelect.value = 'instock';
             renderInventory();
         }
     });

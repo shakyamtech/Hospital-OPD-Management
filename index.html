@@ -767,7 +767,7 @@
 
                     <!-- Stock Overview Stats -->
                     <div class="stats-grid" id="pharmacy-stats-dashboard">
-                        <div class="stat-card" id="card-stat-total" style="cursor: pointer;" title="Click to view all medicines">
+                        <div class="stat-card" id="card-stat-total" title="Click to view all medicines">
                             <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
                                 <span class="material-symbols-outlined">medication</span>
                             </div>
@@ -776,7 +776,7 @@
                                 <p id="stat-total-medicines">0</p>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" id="card-stat-sold" title="Click to filter sold medicines">
                             <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
                                 <span class="material-symbols-outlined">shopping_cart_checkout</span>
                             </div>
@@ -785,7 +785,7 @@
                                 <p id="stat-total-sold">0 units</p>
                             </div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" id="card-stat-remaining" title="Click to filter in-stock / remaining medicines">
                             <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
                                 <span class="material-symbols-outlined">inventory</span>
                             </div>
@@ -794,7 +794,7 @@
                                 <p id="stat-remaining-stock">0 units</p>
                             </div>
                         </div>
-                        <div class="stat-card" id="card-stat-low-stock" style="cursor: pointer;" title="Click to filter low stock medicines">
+                        <div class="stat-card" id="card-stat-low-stock" title="Click to filter low stock medicines">
                             <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
                                 <span class="material-symbols-outlined">warning</span>
                             </div>
@@ -803,7 +803,7 @@
                                 <p id="stat-low-stock">0 items</p>
                             </div>
                         </div>
-                        <div class="stat-card" id="card-stat-expiry" style="cursor: pointer;" title="Click to filter expiring medicines">
+                        <div class="stat-card" id="card-stat-expiry" title="Click to filter expiring medicines">
                             <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
                                 <span class="material-symbols-outlined">event_busy</span>
                             </div>
@@ -826,9 +826,10 @@
                                     <span class="material-symbols-outlined select-icon">filter_alt</span>
                                     <select id="filter-stock-status" class="filter-select">
                                         <option value="">All Stock Status</option>
-                                        <option value="instock">In Stock</option>
+                                        <option value="instock">In Stock / Remaining Stock</option>
                                         <option value="lowstock">Low Stock Warning</option>
                                         <option value="outstock">Out of Stock</option>
+                                        <option value="sold">Sold Items (Sold Qty > 0)</option>
                                         <option value="expiring">Expiring Soon / Expired</option>
                                     </select>
                                 </div>
@@ -1337,6 +1338,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=442"></script>
+    <script src="app.js?v=444"></script>
 </body>
 </html>
