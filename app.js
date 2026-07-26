@@ -2742,12 +2742,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchesStatus = rem > 0 && rem <= minAlert;
             } else if (statusFilter === 'outstock') {
                 matchesStatus = rem <= 0;
+            } else if (statusFilter === 'expiring') {
+                if (!m.expiry_date) {
+                    matchesStatus = false;
+                } else {
+                    const parts = m.expiry_date.split('-');
+                    let expDate = parts.length === 3 ? new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])) : new Date(m.expiry_date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+                    matchesStatus = expDate && !isNaN(expDate.getTime()) && expDate <= thirtyDaysFromNow;
+                }
             }
             return matchesSearch && matchesStatus;
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No medicines found. Click "Add Medicine / Restock" to add items.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No medicines found matching filter criteria.</td></tr>`;
             return;
         }
 
@@ -2794,10 +2805,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalSoldElem = document.getElementById('stat-total-sold');
         const remStockElem = document.getElementById('stat-remaining-stock');
         const lowStockElem = document.getElementById('stat-low-stock');
+        const expiryAlertsElem = document.getElementById('stat-expiry-alerts');
 
         let totalSold = 0;
         let totalRemaining = 0;
         let lowStockCount = 0;
+        let expiryAlertsCount = 0;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
         medicinesCache.forEach(m => {
             const sold = m.sold_qty || 0;
@@ -2807,17 +2824,34 @@ document.addEventListener('DOMContentLoaded', () => {
             totalSold += sold;
             totalRemaining += rem;
             if (rem <= minAlert) lowStockCount++;
+
+            if (m.expiry_date) {
+                const parts = m.expiry_date.split('-');
+                let expDate = parts.length === 3 ? new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])) : new Date(m.expiry_date);
+                if (expDate && !isNaN(expDate.getTime()) && expDate <= thirtyDaysFromNow) {
+                    expiryAlertsCount++;
+                }
+            }
         });
 
         if (totalMedsElem) totalMedsElem.textContent = medicinesCache.length;
         if (totalSoldElem) totalSoldElem.textContent = `${totalSold} units`;
         if (remStockElem) remStockElem.textContent = `${totalRemaining} units`;
         if (lowStockElem) lowStockElem.textContent = `${lowStockCount} items`;
+        if (expiryAlertsElem) expiryAlertsElem.textContent = `${expiryAlertsCount} items`;
     }
 
     document.getElementById('inventory-search')?.addEventListener('input', renderInventory);
     document.getElementById('filter-stock-status')?.addEventListener('change', renderInventory);
     document.getElementById('inventory-refresh-btn')?.addEventListener('click', fetchMedicines);
+
+    document.getElementById('card-stat-expiry')?.addEventListener('click', () => {
+        const filterSelect = document.getElementById('filter-stock-status');
+        if (filterSelect) {
+            filterSelect.value = 'expiring';
+            renderInventory();
+        }
+    });
 
     const medModal = document.getElementById('medicine-modal');
     const btnOpenMedModal = document.getElementById('btn-add-medicine-modal');

@@ -803,6 +803,15 @@
                                 <p id="stat-low-stock">0 items</p>
                             </div>
                         </div>
+                        <div class="stat-card" id="card-stat-expiry" style="cursor: pointer;" title="Click to filter expiring medicines">
+                            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #d97706;">
+                                <span class="material-symbols-outlined">event_busy</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Expiry Alerts</h3>
+                                <p id="stat-expiry-alerts">0 items</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Inventory View -->
@@ -820,6 +829,7 @@
                                         <option value="instock">In Stock</option>
                                         <option value="lowstock">Low Stock Warning</option>
                                         <option value="outstock">Out of Stock</option>
+                                        <option value="expiring">Expiring Soon / Expired</option>
                                     </select>
                                 </div>
                             </div>
@@ -1327,6 +1337,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=440"></script>
+    <script src="app.js?v=441"></script>
 </body>
 </html>
