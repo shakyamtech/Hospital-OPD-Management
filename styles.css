@@ -1,12 +1,12 @@
 :root {
-    --primary: #f09a7b; /* Peach Coral */
-    --primary-hover: #e08563;
-    --secondary: #0d3833; /* Deep Forest Green */
-    --background: #fdfcf0; /* Light Beige */
+    --primary: #f97316; /* Sunrise Coral Orange */
+    --primary-hover: #ea580c;
+    --secondary: #134e4a; /* Deep Clinical Dark Teal */
+    --background: #f0fdfa; /* Soft Mint Light Tint */
     --surface: #ffffff;
-    --text-main: #1f2937;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --border: #ccfbf1;
     --success: #10b981;
     --error: #ef4444;
     --input-bg: #f8fafc;
@@ -1619,7 +1619,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, rgba(13, 56, 51, 0.95) 0%, rgba(13, 56, 51, 0.85) 50%, rgba(13, 56, 51, 0.4) 100%);
+    background: linear-gradient(90deg, rgba(19, 78, 74, 0.95) 0%, rgba(19, 78, 74, 0.85) 50%, rgba(19, 78, 74, 0.4) 100%);
     z-index: 2;
 }
 
@@ -1632,8 +1632,9 @@ body {
 .hero-badge {
     display: inline-block;
     padding: 0.4rem 1rem;
-    background: rgba(240, 154, 123, 0.2);
+    background: rgba(249, 115, 22, 0.15);
     color: var(--primary);
+    border: 1px solid rgba(249, 115, 22, 0.3);
     border-radius: 2rem;
     font-weight: 600;
     font-size: 0.9rem;
@@ -1649,7 +1650,7 @@ body {
 }
 
 .text-gradient {
-    background: linear-gradient(135deg, #f09a7b 0%, #d17554 100%);
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -1687,6 +1688,7 @@ body {
 .btn-large.btn-primary {
     background: var(--primary);
     color: white;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
 }
 .btn-large.btn-primary:hover {
     background: var(--primary-hover);
