@@ -1975,9 +1975,9 @@ body {
 
 .doctor-avatar {
     width: 100%;
-    max-width: 135px;
-    height: 155px;
-    border-radius: 14px;
+    max-width: 175px;
+    height: 200px;
+    border-radius: 16px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -2936,9 +2936,9 @@ body {
 
 .doctor-avatar {
     width: 100%;
-    max-width: 135px;
-    height: 155px;
-    border-radius: 14px;
+    max-width: 175px;
+    height: 200px;
+    border-radius: 16px;
     overflow: hidden;
     display: flex;
     align-items: center;
