@@ -138,6 +138,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Feature Cards Click Handlers ---
+    const featureEquipmentCard = document.getElementById('feature-equipment-card');
+    const featureEmergencyCard = document.getElementById('feature-emergency-card');
+    const featureDoctorsCard = document.getElementById('feature-doctors-card');
+    const emergencyInfoModal = document.getElementById('emergency-info-modal');
+
+    if (featureEquipmentCard) {
+        featureEquipmentCard.addEventListener('click', () => {
+            const equipmentSection = document.getElementById('equipment');
+            if (equipmentSection) {
+                equipmentSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+
+    if (featureEmergencyCard) {
+        featureEmergencyCard.addEventListener('click', () => {
+            emergencyInfoModal?.classList.add('active');
+        });
+    }
+
+    if (featureDoctorsCard) {
+        featureDoctorsCard.addEventListener('click', () => {
+            const doctorsSection = document.getElementById('doctors');
+            if (doctorsSection) {
+                doctorsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+
     const sidebarLogo = document.getElementById('sidebar-logo');
     if (sidebarLogo) {
         sidebarLogo.addEventListener('click', () => {

@@ -106,20 +106,29 @@
             <section class="features-section">
                 <div class="landing-container">
                     <div class="features-grid">
-                        <div class="feature-card glass-panel">
+                        <div class="feature-card glass-panel" id="feature-emergency-card" style="cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                             <div class="feature-icon"><span class="material-symbols-outlined">emergency</span></div>
                             <h3>24/7 Emergency</h3>
                             <p>Immediate medical attention available round the clock for all critical situations.</p>
+                            <div style="margin-top: 1rem; color: var(--primary); font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                                Emergency Helpline <span class="material-symbols-outlined" style="font-size: 1.05rem;">arrow_forward</span>
+                            </div>
                         </div>
-                        <div class="feature-card glass-panel">
+                        <div class="feature-card glass-panel" id="feature-doctors-card" style="cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                             <div class="feature-icon"><span class="material-symbols-outlined">stethoscope</span></div>
                             <h3>Expert Doctors</h3>
                             <p>Highly qualified and experienced specialists across various medical fields.</p>
+                            <div style="margin-top: 1rem; color: var(--primary); font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                                Explore Doctors <span class="material-symbols-outlined" style="font-size: 1.05rem;">arrow_forward</span>
+                            </div>
                         </div>
-                        <div class="feature-card glass-panel">
+                        <div class="feature-card glass-panel" id="feature-equipment-card" style="cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                             <div class="feature-icon"><span class="material-symbols-outlined">medical_services</span></div>
                             <h3>Modern Equipment</h3>
                             <p>Advanced diagnostic and therapeutic technology for accurate care.</p>
+                            <div style="margin-top: 1rem; color: var(--primary); font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                                View Equipment <span class="material-symbols-outlined" style="font-size: 1.05rem;">arrow_forward</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,6 +175,97 @@
                     </div>
                     <div class="doctors-grid" id="public-doctors-grid">
                         <!-- Dynamic doctors will be loaded here via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Modern Equipment & Technology Section -->
+            <section id="equipment" class="equipment-section" style="padding: 4.5rem 0; background: linear-gradient(180deg, var(--background) 0%, rgba(13, 148, 136, 0.04) 100%); border-top: 1px solid var(--border);">
+                <div class="landing-container">
+                    <div class="section-header text-center" style="margin-bottom: 2.5rem;">
+                        <span class="hero-badge" style="background: rgba(13, 148, 136, 0.1); color: var(--primary); font-weight: 600; padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.85rem; display: inline-block;">Advanced Infrastructure</span>
+                        <h2 style="font-size: 2.2rem; color: var(--secondary); margin: 0.6rem 0 0.4rem 0;">State-Of-The-Art Equipment & Technology</h2>
+                        <p style="color: var(--text-muted); max-width: 680px; margin: 0 auto; font-size: 0.95rem;">
+                            Our hospital features ultra-precision 3.5T MRI radiology, high-speed 3D ultrasound sonography, automated lab analyzers, and sterile surgical suites.
+                        </p>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        <!-- Equipment 1 -->
+                        <div class="equipment-card glass-panel" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04); transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                            <div style="height: 175px; overflow: hidden; position: relative; width: 100%;">
+                                <img src="assets/equipment/mri_scanner.png" alt="3.5T Tesla MRI & CT Scanner" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;">
+                                <span style="position: absolute; top: 12px; right: 12px; font-size: 0.75rem; background: rgba(13, 148, 136, 0.9); color: #ffffff; padding: 0.25rem 0.65rem; border-radius: 6px; font-weight: 600; backdrop-filter: blur(4px);">3.5T Tesla Radiology</span>
+                            </div>
+                            <div style="padding: 1.25rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; text-align: left;">
+                                <div>
+                                    <h3 style="margin: 0 0 0.4rem 0; color: var(--secondary); font-size: 1.08rem; font-weight: 700; line-height: 1.35;">3.5T MRI & High-Speed CT Scanner</h3>
+                                    <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                                        Ultra-high resolution 3D magnetic resonance imaging and 128-slice CT scanner for precision brain, cardiac, and full-body diagnostic scans with low radiation.
+                                    </p>
+                                </div>
+                                <div style="margin-top: 1rem; padding-top: 0.65rem; border-top: 1px dashed var(--border); font-size: 0.8rem; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">check_circle</span> Non-invasive 3D Scans & Low Radiation
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Equipment 2 -->
+                        <div class="equipment-card glass-panel" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04); transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                            <div style="height: 175px; overflow: hidden; position: relative; width: 100%;">
+                                <img src="assets/equipment/ultrasound.png" alt="3D/4D Color Doppler Ultrasound" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;">
+                                <span style="position: absolute; top: 12px; right: 12px; font-size: 0.75rem; background: rgba(13, 148, 136, 0.9); color: #ffffff; padding: 0.25rem 0.65rem; border-radius: 6px; font-weight: 600; backdrop-filter: blur(4px);">HD Doppler Sonography</span>
+                            </div>
+                            <div style="padding: 1.25rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; text-align: left;">
+                                <div>
+                                    <h3 style="margin: 0 0 0.4rem 0; color: var(--secondary); font-size: 1.08rem; font-weight: 700; line-height: 1.35;">3D/4D Color Doppler Ultrasound</h3>
+                                    <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                                        Real-time acoustic imaging system for advanced obstetrics, fetal development monitoring, vascular flow analysis, and abdominal diagnostics.
+                                    </p>
+                                </div>
+                                <div style="margin-top: 1rem; padding-top: 0.65rem; border-top: 1px dashed var(--border); font-size: 0.8rem; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">check_circle</span> Live HD Fetal & Vascular Flow Analysis
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Equipment 3 -->
+                        <div class="equipment-card glass-panel" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04); transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                            <div style="height: 175px; overflow: hidden; position: relative; width: 100%;">
+                                <img src="assets/equipment/pathology.png" alt="Automated Pathology Diagnostic Analyzer" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;">
+                                <span style="position: absolute; top: 12px; right: 12px; font-size: 0.75rem; background: rgba(13, 148, 136, 0.9); color: #ffffff; padding: 0.25rem 0.65rem; border-radius: 6px; font-weight: 600; backdrop-filter: blur(4px);">Robotic Lab Diagnostics</span>
+                            </div>
+                            <div style="padding: 1.25rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; text-align: left;">
+                                <div>
+                                    <h3 style="margin: 0 0 0.4rem 0; color: var(--secondary); font-size: 1.08rem; font-weight: 700; line-height: 1.35;">Automated Pathology Diagnostic System</h3>
+                                    <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                                        Robotic hematology, hormonal, and biochemical lab diagnostic analyzers ensuring 99.9% testing accuracy within minutes.
+                                    </p>
+                                </div>
+                                <div style="margin-top: 1rem; padding-top: 0.65rem; border-top: 1px dashed var(--border); font-size: 0.8rem; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">check_circle</span> Rapid Blood & Biochemical Reports
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Equipment 4 -->
+                        <div class="equipment-card glass-panel" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04); transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+                            <div style="height: 175px; overflow: hidden; position: relative; width: 100%;">
+                                <img src="assets/equipment/operating_room.png" alt="Modular Laparoscopic Operating Theater" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;">
+                                <span style="position: absolute; top: 12px; right: 12px; font-size: 0.75rem; background: rgba(13, 148, 136, 0.9); color: #ffffff; padding: 0.25rem 0.65rem; border-radius: 6px; font-weight: 600; backdrop-filter: blur(4px);">Modular Surgical OT</span>
+                            </div>
+                            <div style="padding: 1.25rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; text-align: left;">
+                                <div>
+                                    <h3 style="margin: 0 0 0.4rem 0; color: var(--secondary); font-size: 1.08rem; font-weight: 700; line-height: 1.35;">Modular Infection-Free OT Suite</h3>
+                                    <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                                        HEPA-filtered laminar airflow operating theater equipped with HD 4K laparoscopic video towers and cardiac life-support suites.
+                                    </p>
+                                </div>
+                                <div style="margin-top: 1rem; padding-top: 0.65rem; border-top: 1px dashed var(--border); font-size: 0.8rem; color: var(--primary); font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--primary);">check_circle</span> Ultra-Sterile & Minimally Invasive Surgery
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
