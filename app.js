@@ -1885,7 +1885,14 @@ document.addEventListener('DOMContentLoaded', () => {
         doctors.forEach(d => {
             const avatarInner = d.avatar 
                 ? `<img src="${escapeHtml(d.avatar)}" alt="${escapeHtml(d.name)}" />`
-                : `<span class="material-symbols-outlined">person</span>`;
+                : `<span class="material-symbols-outlined" style="font-size: 3rem; color: #0284c7;">person</span>`;
+
+            let cleanName = (d.name || '').trim();
+            if (/^Dr\.?[^\s]/i.test(cleanName)) {
+                cleanName = cleanName.replace(/^Dr\.?/i, 'Dr. ');
+            } else if (!/^Dr\./i.test(cleanName)) {
+                cleanName = `Dr. ${cleanName}`;
+            }
 
             html += `
                 <div class="doctor-card glass-panel">
@@ -1893,9 +1900,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${avatarInner}
                     </div>
                     <div class="doctor-info">
-                        <h3>${escapeHtml(d.name)}</h3>
+                        <h3>${escapeHtml(cleanName)}</h3>
                         <p class="doctor-specialty">${escapeHtml(d.specialization)}</p>
-                        <a href="#" class="btn-text btn-book">Book Appointment <span class="material-symbols-outlined">arrow_forward</span></a>
+                        <a href="#booking" class="btn-text btn-book">Book Appointment <span class="material-symbols-outlined">arrow_forward</span></a>
                     </div>
                 </div>
             `;
