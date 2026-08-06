@@ -2881,3 +2881,79 @@ body {
     }
 }
 
+/* --- Doctor Avatar Styling --- */
+.doctor-avatar img,
+.doctor-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.doctor-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffedd5;
+    color: #f97316;
+    margin: 0 auto 1rem auto;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.doc-table-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    overflow: hidden;
+    font-size: 1.2rem;
+}
+
+.doc-table-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-upload-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--input-bg, #f8fafc);
+    border: 1px dashed var(--border, #cbd5e1);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+}
+
+.avatar-preview-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.avatar-preview-sm img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+

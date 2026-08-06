@@ -1491,10 +1491,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         : `<span class="badge" style="font-size: 0.75rem; background: rgba(148, 163, 184, 0.15); color: #64748b; border: 1px solid #cbd5e1;">Off Duty</span>`;
 
                     const cleanDocName = (d.name || '').replace(/^(Dr\.?\s*)+/i, 'Dr. ');
+                    const avatarIcon = d.avatar
+                        ? `<img src="${escapeHtml(d.avatar)}" alt="${escapeHtml(cleanDocName)}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--primary);" />`
+                        : `<span class="material-symbols-outlined" style="color: ${isOnDuty ? 'var(--primary)' : '#94a3b8'}; font-size: 1.5rem;">stethoscope</span>`;
+
                     return `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--input-bg); border-radius: var(--radius-sm); border: 1px solid var(--border); ${!isOnDuty ? 'opacity: 0.75;' : ''}">
                             <div style="display: flex; align-items: center; gap: 0.6rem;">
-                                <span class="material-symbols-outlined" style="color: ${isOnDuty ? 'var(--primary)' : '#94a3b8'};">stethoscope</span>
+                                ${avatarIcon}
                                 <div>
                                     <strong style="font-size: 0.9rem; color: var(--secondary);">${escapeHtml(cleanDocName)}</strong>
                                     <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(d.specialization)}</div>
@@ -1801,6 +1805,73 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bookingDoc) bookingDoc.innerHTML = bookingHtml;
     }
 
+    // --- Image Compression Utility for Avatars ---
+    function compressImageFile(file, maxWidth = 300, maxHeight = 300, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Add Doctor Avatar Preview Handling
+    let newDoctorAvatarDataUrl = '';
+    const newDocAvatarFileInput = document.getElementById('new-doctor-avatar-file');
+    const newDocAvatarUrlInput = document.getElementById('new-doctor-avatar-url');
+    const addDocAvatarPreview = document.getElementById('add-doc-avatar-preview');
+
+    if (newDocAvatarFileInput) {
+        newDocAvatarFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    newDoctorAvatarDataUrl = await compressImageFile(file);
+                    if (addDocAvatarPreview) {
+                        addDocAvatarPreview.innerHTML = `<img src="${newDoctorAvatarDataUrl}" alt="Preview" />`;
+                    }
+                } catch (err) {
+                    console.error('Failed to process image file:', err);
+                    showToast('Failed to read image file.');
+                }
+            }
+        });
+    }
+
+    if (newDocAvatarUrlInput) {
+        newDocAvatarUrlInput.addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url && addDocAvatarPreview) {
+                addDocAvatarPreview.innerHTML = `<img src="${escapeHtml(url)}" alt="Preview" onerror="this.onerror=null; this.parentNode.innerHTML='<span class=\\'material-symbols-outlined\\'>person</span>';" />`;
+            }
+        });
+    }
+
     function renderPublicDoctors(doctors) {
         const grid = document.getElementById('public-doctors-grid');
         if (!grid) return;
@@ -1810,18 +1881,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Show all doctors
-        const docsToShow = doctors;
         let html = '';
-        docsToShow.forEach(d => {
+        doctors.forEach(d => {
+            const avatarInner = d.avatar 
+                ? `<img src="${escapeHtml(d.avatar)}" alt="${escapeHtml(d.name)}" />`
+                : `<span class="material-symbols-outlined">person</span>`;
+
             html += `
                 <div class="doctor-card glass-panel">
                     <div class="doctor-avatar">
-                        <span class="material-symbols-outlined">person</span>
+                        ${avatarInner}
                     </div>
                     <div class="doctor-info">
-                        <h3>${d.name}</h3>
-                        <p class="doctor-specialty">${d.specialization}</p>
+                        <h3>${escapeHtml(d.name)}</h3>
+                        <p class="doctor-specialty">${escapeHtml(d.specialization)}</p>
                         <a href="#" class="btn-text btn-book">Book Appointment <span class="material-symbols-outlined">arrow_forward</span></a>
                     </div>
                 </div>
@@ -1835,21 +1908,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tbody) return;
         
         if (doctors.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 1rem;">No doctors found. Add one above.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 1rem;">No doctors found. Add one above.</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = doctors.map(d => `
-            <tr>
-                <td><strong>${d.name.replace(/</g, "&lt;")}</strong></td>
-                <td>${d.specialization.replace(/</g, "&lt;")}</td>
-                <td>
-                    <button class="btn-secondary" style="color: var(--danger);" onclick="window._deleteDoctor('${d.id}')">
-                        <span class="material-symbols-outlined">delete</span> Delete
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = doctors.map(d => {
+            const avatarTd = d.avatar 
+                ? `<img src="${escapeHtml(d.avatar)}" alt="${escapeHtml(d.name)}" />` 
+                : `<span class="material-symbols-outlined">person</span>`;
+
+            return `
+                <tr>
+                    <td style="text-align: center;">
+                        <div class="doc-table-avatar" style="margin: 0 auto;">
+                            ${avatarTd}
+                        </div>
+                    </td>
+                    <td><strong>${escapeHtml(d.name)}</strong></td>
+                    <td>${escapeHtml(d.specialization)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action edit" onclick="window._editDoctor('${d.id}')" title="Edit Profile & Photo">
+                                <span class="material-symbols-outlined">photo_camera</span> Edit/Photo
+                            </button>
+                            <button class="btn-action delete" onclick="window._deleteDoctor('${d.id}')" title="Delete">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     const addDoctorForm = document.getElementById('add-doctor-form');
@@ -1858,6 +1947,9 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const name = document.getElementById('new-doctor-name').value.trim();
             const spec = document.getElementById('new-doctor-spec').value.trim();
+            const urlAvatar = newDocAvatarUrlInput ? newDocAvatarUrlInput.value.trim() : '';
+            const avatar = newDoctorAvatarDataUrl || urlAvatar || null;
+
             if (!name || !spec) return;
 
             const btn = document.getElementById('btn-add-doctor');
@@ -1868,11 +1960,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch(`${API_BASE}/doctors`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, specialization: spec })
+                    body: JSON.stringify({ name: name, specialization: spec, avatar: avatar })
                 });
                 if (response.ok) {
                     showToast('Doctor added successfully!');
                     addDoctorForm.reset();
+                    newDoctorAvatarDataUrl = '';
+                    if (addDocAvatarPreview) addDocAvatarPreview.innerHTML = '<span class="material-symbols-outlined">person</span>';
                     fetchDoctors();
                 } else {
                     showToast('Failed to add doctor.');
@@ -1883,6 +1977,110 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<span class="material-symbols-outlined">add</span> Add Doctor';
+            }
+        });
+    }
+
+    // --- Doctor Edit Modal Logic ---
+    const doctorModal = document.getElementById('doctor-modal');
+    const doctorEditForm = document.getElementById('doctor-edit-form');
+    const editDocAvatarFile = document.getElementById('edit-doc-avatar-file');
+    const editDocAvatarUrl = document.getElementById('edit-doc-avatar-url');
+    const editDocAvatarLarge = document.getElementById('edit-doc-avatar-large');
+    let editDoctorAvatarDataUrl = '';
+
+    if (document.getElementById('doctor-modal-close-btn')) {
+        document.getElementById('doctor-modal-close-btn').addEventListener('click', () => doctorModal.classList.remove('active'));
+    }
+    if (document.getElementById('edit-doc-cancel-btn')) {
+        document.getElementById('edit-doc-cancel-btn').addEventListener('click', () => doctorModal.classList.remove('active'));
+    }
+
+    if (editDocAvatarFile) {
+        editDocAvatarFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    editDoctorAvatarDataUrl = await compressImageFile(file);
+                    if (editDocAvatarLarge) {
+                        editDocAvatarLarge.innerHTML = `<img src="${editDoctorAvatarDataUrl}" alt="Avatar Preview" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        });
+    }
+
+    if (editDocAvatarUrl) {
+        editDocAvatarUrl.addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            if (url && editDocAvatarLarge) {
+                editDocAvatarLarge.innerHTML = `<img src="${escapeHtml(url)}" alt="Avatar Preview" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.onerror=null; this.parentNode.innerHTML='<span class=\\'material-symbols-outlined\\' style=\\'font-size:3.5rem;\\'>person</span>';" />`;
+            }
+        });
+    }
+
+    window._editDoctor = function(id) {
+        const doc = doctorsCache.find(d => d.id === id);
+        if (!doc) return;
+
+        editDoctorAvatarDataUrl = '';
+        document.getElementById('edit-doc-id').value = doc.id;
+        document.getElementById('edit-doc-name').value = doc.name;
+        document.getElementById('edit-doc-spec').value = doc.specialization;
+        if (editDocAvatarUrl) editDocAvatarUrl.value = doc.avatar && !doc.avatar.startsWith('data:') ? doc.avatar : '';
+        if (editDocAvatarFile) editDocAvatarFile.value = '';
+
+        if (editDocAvatarLarge) {
+            editDocAvatarLarge.innerHTML = doc.avatar
+                ? `<img src="${escapeHtml(doc.avatar)}" alt="${escapeHtml(doc.name)}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`
+                : `<span class="material-symbols-outlined" style="font-size:3.5rem;">person</span>`;
+        }
+
+        doctorModal.classList.add('active');
+    };
+
+    if (doctorEditForm) {
+        doctorEditForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-doc-id').value;
+            const name = document.getElementById('edit-doc-name').value.trim();
+            const spec = document.getElementById('edit-doc-spec').value.trim();
+            const existingDoc = doctorsCache.find(d => d.id === id);
+
+            let avatar = editDoctorAvatarDataUrl;
+            if (!avatar && editDocAvatarUrl && editDocAvatarUrl.value.trim()) {
+                avatar = editDocAvatarUrl.value.trim();
+            }
+            if (!avatar && existingDoc && existingDoc.avatar) {
+                avatar = existingDoc.avatar;
+            }
+
+            const btn = document.getElementById('edit-doc-submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch(`${API_BASE}/doctors/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, specialization: spec, avatar: avatar || null })
+                });
+
+                if (response.ok) {
+                    showToast('Doctor profile and photo updated!');
+                    doctorModal.classList.remove('active');
+                    fetchDoctors();
+                } else {
+                    showToast('Failed to update doctor profile.');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error updating doctor.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Changes';
             }
         });
     }

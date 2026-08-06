@@ -4,6 +4,7 @@ from typing import Optional, List
 class Doctor(BaseModel):
     name: str
     specialization: str
+    avatar: Optional[str] = None
 
 class PersonalDetails(BaseModel):
     name: str

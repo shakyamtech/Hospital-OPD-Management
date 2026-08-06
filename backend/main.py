@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -181,6 +182,22 @@ async def delete_doctor(doctor_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete doctor: {str(e)}")
+
+@app.put("/api/doctors/{doctor_id}")
+async def update_doctor(doctor_id: str, doctor: Doctor):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        doc_ref = db.collection("doctors").document(doctor_id)
+        if not doc_ref.get().exists:
+            raise HTTPException(status_code=404, detail="Doctor not found.")
+        doctor_data = doctor.model_dump()
+        doc_ref.set(doctor_data, merge=True)
+        return {"message": "Doctor updated successfully", "id": doctor_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update doctor: {str(e)}")
 
 @app.post("/api/appointment-requests")
 async def create_appointment_request(request: AppointmentRequest):
@@ -466,6 +483,11 @@ async def clear_all_sales_logs():
         return {"message": f"All {deleted_count} sales log(s) cleared.", "count": deleted_count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to clear sales logs: {str(e)}")
+
+# Mount frontend static files
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+if os.path.exists(PROJECT_ROOT):
+    app.mount("/", StaticFiles(directory=PROJECT_ROOT, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
