@@ -392,7 +392,7 @@
                                 <span class="material-symbols-outlined">local_pharmacy</span>
                                 <span>Manage Pharmacy</span>
                             </button>
-                            <button class="quick-action-btn" id="qa-btn-doctor" onclick="if(document.getElementById('tab-settings')) document.getElementById('tab-settings').click()">
+                            <button class="quick-action-btn" id="qa-btn-doctor" onclick="if(document.getElementById('tab-settings')) document.getElementById('tab-settings').click(); if(typeof window._openDoctorModal === 'function') window._openDoctorModal();">
                                 <span class="material-symbols-outlined">person_add</span>
                                 <span>Add Doctor</span>
                             </button>
@@ -1056,39 +1056,18 @@
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <h3 class="section-title"><span class="material-symbols-outlined">person_add</span> Add New Doctor</h3>
-                        <form id="add-doctor-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-                            <div class="input-group" style="flex: 1; min-width: 200px;">
-                                <label for="new-doctor-name">Doctor Name</label>
-                                <input type="text" id="new-doctor-name" placeholder="e.g., Dr. Strange" required>
-                            </div>
-                            <div class="input-group" style="flex: 1; min-width: 200px;">
-                                <label for="new-doctor-spec">Specialization</label>
-                                <input type="text" id="new-doctor-spec" placeholder="e.g., Neurology" required>
-                            </div>
-                            <div class="input-group" style="flex: 1.5; min-width: 260px;">
-                                <label for="new-doctor-avatar-file">Profile Photo / Avatar</label>
-                                <div class="avatar-upload-box">
-                                    <div class="avatar-preview-sm" id="add-doc-avatar-preview">
-                                        <span class="material-symbols-outlined">person</span>
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 0.3rem; flex: 1;">
-                                        <input type="file" id="new-doctor-avatar-file" accept="image/*" style="font-size: 0.78rem;">
-                                        <input type="url" id="new-doctor-avatar-url" placeholder="or paste Image URL" style="font-size: 0.78rem; padding: 0.25rem 0.5rem;">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-actions" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start;">
-                                <button type="submit" class="btn-primary" id="btn-add-doctor">
-                                    <span class="material-symbols-outlined">add</span> Add Doctor
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    
                     <div class="glass-panel table-container" style="margin-top: 2rem;">
-                        <h3 class="section-title" style="margin: 1rem;"><span class="material-symbols-outlined">list</span> Existing Doctors</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h3 class="section-title" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="material-symbols-outlined" style="color: var(--primary);">badge</span> Existing Doctors & Staff
+                                </h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">Manage hospital doctors, specializations, and profile photos.</p>
+                            </div>
+                            <button type="button" class="btn-primary" id="btn-open-add-doctor-modal">
+                                <span class="material-symbols-outlined">person_add</span> Add New Doctor
+                            </button>
+                        </div>
                         <table class="data-table">
                             <thead>
                                 <tr>

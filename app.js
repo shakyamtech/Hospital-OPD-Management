@@ -1981,19 +1981,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Doctor Edit Modal Logic ---
+    // --- Doctor Add & Edit Modal Logic ---
     const doctorModal = document.getElementById('doctor-modal');
     const doctorEditForm = document.getElementById('doctor-edit-form');
     const editDocAvatarFile = document.getElementById('edit-doc-avatar-file');
     const editDocAvatarUrl = document.getElementById('edit-doc-avatar-url');
     const editDocAvatarLarge = document.getElementById('edit-doc-avatar-large');
+    const btnOpenAddDoctorModal = document.getElementById('btn-open-add-doctor-modal');
     let editDoctorAvatarDataUrl = '';
 
     if (document.getElementById('doctor-modal-close-btn')) {
-        document.getElementById('doctor-modal-close-btn').addEventListener('click', () => doctorModal.classList.remove('active'));
+        document.getElementById('doctor-modal-close-btn').addEventListener('click', () => doctorModal?.classList.remove('active'));
     }
     if (document.getElementById('edit-doc-cancel-btn')) {
-        document.getElementById('edit-doc-cancel-btn').addEventListener('click', () => doctorModal.classList.remove('active'));
+        document.getElementById('edit-doc-cancel-btn').addEventListener('click', () => doctorModal?.classList.remove('active'));
+    }
+
+    if (btnOpenAddDoctorModal) {
+        btnOpenAddDoctorModal.addEventListener('click', () => window._openDoctorModal());
     }
 
     if (editDocAvatarFile) {
@@ -2006,7 +2011,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         editDocAvatarLarge.innerHTML = `<img src="${editDoctorAvatarDataUrl}" alt="Avatar Preview" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
                     }
                 } catch (err) {
-                    console.error(err);
+                    console.error('Error handling avatar file:', err);
                 }
             }
         });
@@ -2021,24 +2026,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window._editDoctor = function(id) {
-        const doc = doctorsCache.find(d => d.id === id);
-        if (!doc) return;
-
+    window._openDoctorModal = function(doc = null) {
+        if (!doctorModal) return;
         editDoctorAvatarDataUrl = '';
-        document.getElementById('edit-doc-id').value = doc.id;
-        document.getElementById('edit-doc-name').value = doc.name;
-        document.getElementById('edit-doc-spec').value = doc.specialization;
-        if (editDocAvatarUrl) editDocAvatarUrl.value = doc.avatar && !doc.avatar.startsWith('data:') ? doc.avatar : '';
-        if (editDocAvatarFile) editDocAvatarFile.value = '';
 
-        if (editDocAvatarLarge) {
-            editDocAvatarLarge.innerHTML = doc.avatar
-                ? `<img src="${escapeHtml(doc.avatar)}" alt="${escapeHtml(doc.name)}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`
-                : `<span class="material-symbols-outlined" style="font-size:3.5rem;">person</span>`;
+        const titleElem = document.getElementById('doctor-modal-title');
+        const submitBtn = document.getElementById('edit-doc-submit-btn');
+
+        if (doc) {
+            // Edit Doctor Mode
+            if (titleElem) titleElem.textContent = 'Edit Doctor Profile & Photo';
+            if (submitBtn) submitBtn.innerHTML = '<span class="material-symbols-outlined">save</span> Save Changes';
+
+            document.getElementById('edit-doc-id').value = doc.id;
+            document.getElementById('edit-doc-name').value = doc.name || '';
+            document.getElementById('edit-doc-spec').value = doc.specialization || '';
+            if (editDocAvatarUrl) editDocAvatarUrl.value = doc.avatar && !doc.avatar.startsWith('data:') ? doc.avatar : '';
+            if (editDocAvatarFile) editDocAvatarFile.value = '';
+
+            if (editDocAvatarLarge) {
+                editDocAvatarLarge.innerHTML = doc.avatar
+                    ? `<img src="${escapeHtml(doc.avatar)}" alt="${escapeHtml(doc.name)}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`
+                    : `<span class="material-symbols-outlined" style="font-size:3.5rem;">person</span>`;
+            }
+        } else {
+            // Add New Doctor Mode
+            if (titleElem) titleElem.textContent = 'Add New Doctor Profile';
+            if (submitBtn) submitBtn.innerHTML = '<span class="material-symbols-outlined">add</span> Add Doctor';
+
+            document.getElementById('edit-doc-id').value = '';
+            document.getElementById('edit-doc-name').value = '';
+            document.getElementById('edit-doc-spec').value = '';
+            if (editDocAvatarUrl) editDocAvatarUrl.value = '';
+            if (editDocAvatarFile) editDocAvatarFile.value = '';
+
+            if (editDocAvatarLarge) {
+                editDocAvatarLarge.innerHTML = `<span class="material-symbols-outlined" style="font-size:3.5rem;">person_add</span>`;
+            }
         }
 
         doctorModal.classList.add('active');
+    };
+
+    window._editDoctor = function(id) {
+        const doc = doctorsCache.find(d => d.id === id);
+        if (doc) window._openDoctorModal(doc);
     };
 
     if (doctorEditForm) {
@@ -2047,7 +2079,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = document.getElementById('edit-doc-id').value;
             const name = document.getElementById('edit-doc-name').value.trim();
             const spec = document.getElementById('edit-doc-spec').value.trim();
-            const existingDoc = doctorsCache.find(d => d.id === id);
+            const existingDoc = id ? doctorsCache.find(d => d.id === id) : null;
 
             let avatar = editDoctorAvatarDataUrl;
             if (!avatar && editDocAvatarUrl && editDocAvatarUrl.value.trim()) {
@@ -2057,30 +2089,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatar = existingDoc.avatar;
             }
 
+            if (!name || !spec) {
+                showToast('Please provide doctor name and specialization.');
+                return;
+            }
+
             const btn = document.getElementById('edit-doc-submit-btn');
             btn.disabled = true;
-            btn.textContent = 'Saving...';
+            btn.textContent = id ? 'Saving...' : 'Adding...';
 
             try {
-                const response = await fetch(`${API_BASE}/doctors/${id}`, {
-                    method: 'PUT',
+                const url = id ? `${API_BASE}/doctors/${id}` : `${API_BASE}/doctors`;
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: name, specialization: spec, avatar: avatar || null })
                 });
 
                 if (response.ok) {
-                    showToast('Doctor profile and photo updated!');
+                    showToast(id ? 'Doctor profile updated!' : 'Doctor added successfully!');
                     doctorModal.classList.remove('active');
                     fetchDoctors();
                 } else {
-                    showToast('Failed to update doctor profile.');
+                    showToast(id ? 'Failed to update doctor profile.' : 'Failed to add doctor.');
                 }
             } catch (err) {
                 console.error(err);
-                showToast('Error updating doctor.');
+                showToast('Error saving doctor details.');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Save Changes';
+                btn.innerHTML = id ? '<span class="material-symbols-outlined">save</span> Save Changes' : '<span class="material-symbols-outlined">add</span> Add Doctor';
             }
         });
     }
