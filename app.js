@@ -738,6 +738,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     Pending
                    </span>`;
 
+            const canEdit = (role === 'doctor' || role === 'admin' || role === 'staff');
+            const editBtnLabel = (role === 'doctor') ? 'Checkup / Edit' : 'Edit';
+            const editBtnIcon = (role === 'doctor') ? 'edit_note' : 'edit';
+
             return `
                 <tr>
                     <td>
@@ -755,11 +759,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="material-symbols-outlined">visibility</span>
                                 View
                             </button>
-                            <button class="btn-action edit" onclick="window._editPatient('${p.id}')" title="Checkup / Edit">
-                                <span class="material-symbols-outlined">edit_note</span>
-                                Checkup / Edit
-                            </button>
-                            ${(localStorage.getItem('opd_role') === 'admin') ? `<button class="btn-action delete" onclick="window._deletePatient('${p.id}', '${escapeHtml(name)}')" title="Delete">
+                            ${canEdit ? `<button class="btn-action edit" onclick="window._editPatient('${p.id}')" title="${editBtnLabel}">
+                                <span class="material-symbols-outlined">${editBtnIcon}</span>
+                                ${editBtnLabel}
+                            </button>` : ''}
+                            ${(role === 'admin') ? `<button class="btn-action delete" onclick="window._deletePatient('${p.id}', '${escapeHtml(name)}')" title="Delete">
                                 <span class="material-symbols-outlined">delete</span>
                                 Delete
                             </button>` : ''}
