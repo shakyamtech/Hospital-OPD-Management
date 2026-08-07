@@ -431,16 +431,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const patientData = collectFormData();
         let targetId = editPatientId.value;
         let isEditMode = !!targetId;
+        const role = localStorage.getItem('opd_role') || 'admin';
 
-        // Duplicate safeguard: Auto-detect existing patient by name and contact if not explicitly editing
+        // Duplicate safeguard: Check if patient with same name and contact already exists
         if (!isEditMode && patientData.personal?.name && patientData.personal?.contact) {
             const existing = patientsCache.find(p => 
                 (p.personal?.name || '').trim().toLowerCase() === patientData.personal.name.trim().toLowerCase() &&
                 (p.personal?.contact || '').trim() === patientData.personal.contact.trim()
             );
             if (existing) {
-                targetId = existing.id;
-                isEditMode = true;
+                if (role === 'doctor') {
+                    // For Doctor role: auto-update checkup details for existing patient
+                    targetId = existing.id;
+                    isEditMode = true;
+                } else {
+                    // For OPD Staff / Admin role: prevent duplicate registration and show duplicate warning
+                    const existingId = formatPatientId(existing);
+                    showToast(`Duplicate Patient! "${patientData.personal.name}" is already registered (${existingId}). Please search in Patient Directory.`, true);
+                    return;
+                }
             }
         }
 
