@@ -873,8 +873,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="detail-value">${escapeHtml(m.description || '—')}</div>
                     </div>
                     <div class="detail-item full-width">
-                        <div class="detail-label">Previous Illness</div>
-                        <div class="detail-value">${escapeHtml(m.previousIllness || '—')}</div>
+                        <div class="detail-label">Previous Illness / Clinical History Timeline</div>
+                        <div class="detail-value" style="white-space: pre-wrap;">${escapeHtml(m.previousIllness || '—')}</div>
                     </div>
                     <div class="detail-item full-width">
                         <div class="detail-label">Prescribed Medicines</div>
