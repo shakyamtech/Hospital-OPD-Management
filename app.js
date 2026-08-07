@@ -429,7 +429,21 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const patientData = collectFormData();
-        const isEditMode = !!editPatientId.value;
+        let targetId = editPatientId.value;
+        let isEditMode = !!targetId;
+
+        // Duplicate safeguard: Auto-detect existing patient by name and contact if not explicitly editing
+        if (!isEditMode && patientData.personal?.name && patientData.personal?.contact) {
+            const existing = patientsCache.find(p => 
+                (p.personal?.name || '').trim().toLowerCase() === patientData.personal.name.trim().toLowerCase() &&
+                (p.personal?.contact || '').trim() === patientData.personal.contact.trim()
+            );
+            if (existing) {
+                targetId = existing.id;
+                isEditMode = true;
+            }
+        }
+
         const submitBtn = patientForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = isEditMode ? 'Updating...' : 'Registering...';
@@ -437,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const url = isEditMode
-                ? `${API_BASE}/patients/${editPatientId.value}`
+                ? `${API_BASE}/patients/${targetId}`
                 : `${API_BASE}/patients`;
             const method = isEditMode ? 'PUT' : 'POST';
 
