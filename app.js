@@ -694,10 +694,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderPatientTable(patients) {
+        const role = localStorage.getItem('opd_role') || 'admin';
+        const isDoctorRole = (role === 'doctor');
+
+        // Toggle Status column th header visibility based on Doctor role
+        document.querySelectorAll('.doctor-only-col').forEach(el => {
+            el.style.display = isDoctorRole ? '' : 'none';
+        });
+
         if (!patients.length) {
             directoryTbody.innerHTML = `
                 <tr>
-                    <td colspan="7">
+                    <td colspan="${isDoctorRole ? 7 : 6}">
                         <div class="table-empty">
                             <span class="material-symbols-outlined">person_off</span>
                             <p>No patients found.</p>
@@ -740,7 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${escapeHtml(doctor)}</td>
                     <td>${escapeHtml(time)}</td>
                     <td>${escapeHtml(contact)}</td>
-                    <td>${statusBadge}</td>
+                    ${isDoctorRole ? `<td>${statusBadge}</td>` : ''}
                     <td>
                         <div class="action-buttons">
                             <button class="btn-action view" onclick="window._viewPatient('${p.id}')" title="View">
