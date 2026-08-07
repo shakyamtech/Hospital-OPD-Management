@@ -759,6 +759,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="material-symbols-outlined">visibility</span>
                                 View
                             </button>
+                            ${(role === 'staff' || role === 'admin') ? `<button class="btn-action view" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd;" onclick="window._revisitPatient('${p.id}')" title="Issue Re-visit Ticket">
+                                <span class="material-symbols-outlined">confirmation_number</span>
+                                Re-visit Ticket
+                            </button>` : ''}
                             ${canEdit ? `<button class="btn-action edit" onclick="window._editPatient('${p.id}')" title="${editBtnLabel}">
                                 <span class="material-symbols-outlined">${editBtnIcon}</span>
                                 ${editBtnLabel}
@@ -972,6 +976,64 @@ document.addEventListener('DOMContentLoaded', () => {
         applyRolePermissionsToForm(true);
 
         // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- Re-visit OPD Ticket (For Returning Patients) ---
+    function revisitPatient(patientParam) {
+        if (!patientParam) return;
+
+        let patient = patientParam;
+        if (typeof patientParam === 'string') {
+            patient = patientsCache.find(p => p.id === patientParam);
+        }
+        if (!patient) return;
+
+        const p = patient.personal || {};
+        const g = patient.guardian || {};
+        const m = patient.medical || {};
+        const a = patient.appointment || {};
+
+        switchTab('register');
+
+        editPatientId.value = patient.id;
+        formTitle.textContent = 'Issue Re-visit OPD Ticket';
+        formSubtitle.textContent = `Issuing new OPD visit ticket for ${p.name || 'patient'} (${formatPatientId(patient)}). Past medical history will be preserved.`;
+        btnSubmit.textContent = 'Issue Re-visit Ticket';
+
+        document.getElementById('patient-name').value = p.name || '';
+        document.getElementById('patient-age').value = p.age || '';
+        document.getElementById('patient-blood').value = p.bloodGroup || '';
+        document.getElementById('patient-contact').value = p.contact || '';
+        document.getElementById('patient-address').value = p.address || '';
+
+        document.getElementById('guardian-name').value = g.name || '';
+        document.getElementById('guardian-contact').value = g.contact || '';
+
+        // Archive previous diagnosis & prescription into Previous History
+        let prevHistory = m.previousIllness || '';
+        if (m.description && m.description.trim() !== '') {
+            const historyEntry = `[Past Visit: ${m.description.trim()}${m.medicines ? ' | Medicines: ' + m.medicines : ''}${m.tests ? ' | Tests: ' + m.tests : ''}]`;
+            prevHistory = prevHistory ? `${prevHistory}\n${historyEntry}` : historyEntry;
+        }
+        document.getElementById('previous-illness').value = prevHistory;
+
+        // Reset checkup/prescription fields for new visit
+        document.getElementById('description').value = '';
+        document.getElementById('medicines').value = '';
+        if (typeof syncPrescribedTestsUI === 'function') {
+            syncPrescribedTestsUI('');
+        }
+
+        // Set appointment defaults for new visit
+        document.getElementById('doctor').value = a.doctor || '';
+        document.getElementById('block-ward').value = a.blockWard || '';
+        document.getElementById('time').value = '';
+        document.getElementById('charges').value = a.charges || '75';
+        document.getElementById('followup-date').value = '';
+        document.getElementById('followup-time').value = '';
+
+        applyRolePermissionsToForm(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1893,6 +1955,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window._editPatient = (id) => {
         const patient = patientsCache.find(p => p.id === id);
         if (patient) editPatient(patient);
+    };
+    window._revisitPatient = (id) => {
+        const patient = patientsCache.find(p => p.id === id);
+        if (patient) revisitPatient(patient);
     };
     window._deletePatient = (id, name) => {
         if (localStorage.getItem('opd_role') !== 'admin') {
