@@ -2298,19 +2298,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const TEST_PRICES = {
+            'X-Ray': 800,
+            'Video X-Ray': 1500,
+            'Blood Test': 600
+        };
+
         tbody.innerHTML = pendingBills.map(p => {
             const name = escapeHtml(p.personal?.name || 'Unknown');
             const doc = escapeHtml(formatDoctor(p.appointment?.doctor || 'Unknown'));
-            const charges = parseFloat(p.appointment?.charges || 0).toFixed(2);
-            const total = charges; // assuming tests are 0 for now
+            const docCharges = parseFloat(p.appointment?.charges || 0);
+            
+            // Calculate prescribed test charges
+            const testStr = p.medical?.tests || '';
+            let testCharges = 0;
+            if (testStr) {
+                const testItems = testStr.split(',').map(t => t.trim());
+                testItems.forEach(t => {
+                    if (TEST_PRICES[t]) {
+                        testCharges += TEST_PRICES[t];
+                    } else if (t) {
+                        testCharges += 500; // default for custom tests
+                    }
+                });
+            }
+
+            const total = docCharges + testCharges;
+            const testLabel = testStr ? `<br><small style="color:var(--text-light); font-size:0.75rem;">(${escapeHtml(testStr)})</small>` : '';
             
             return `
                 <tr>
                     <td><strong>${name}</strong></td>
                     <td>${doc}</td>
-                    <td>Rs ${charges}</td>
-                    <td>Rs 0.00</td>
-                    <td><strong>Rs ${total}</strong></td>
+                    <td>Rs ${docCharges.toFixed(2)}</td>
+                    <td>Rs ${testCharges.toFixed(2)}${testLabel}</td>
+                    <td><strong style="color: var(--primary);">Rs ${total.toFixed(2)}</strong></td>
                     <td><span class="badge badge-warning">Pending</span></td>
                     <td>
                         <button class="btn-primary" onclick="window._manageBilling('${p.id}')">
