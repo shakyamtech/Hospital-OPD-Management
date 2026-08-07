@@ -1116,6 +1116,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const m = patient.medical || {};
         const a = patient.appointment || {};
         const patientName = (p.name || 'Patient').trim();
+
+        const TEST_PRICES = {
+            'X-Ray': 800,
+            'Video X-Ray': 1500,
+            'Blood Test': 600,
+            'Urine Test': 300,
+            'ECG': 600,
+            'EEG': 3000,
+            'CT-Scan': 6500,
+            'MRI': 9500
+        };
+
+        let invoiceItemsHtml = '';
+        let itemIndex = 1;
+        let grandTotal = parseFloat(a.charges || 0);
+
+        // 1. OPD Registration & Doctor Consultation Charge
+        invoiceItemsHtml += `
+            <tr>
+                <td style="text-align: center;">${itemIndex++}</td>
+                <td>OPD Registration Fee & Consultation Charges - ${escapeHtml(formatDoctor(a.doctor))}</td>
+                <td style="text-align: right;">Rs ${parseFloat(a.charges || 0).toFixed(2)}</td>
+            </tr>
+        `;
+
+        // 2, 3, 4... Prescribed Tests & Investigations
+        if (m.tests && m.tests.trim() !== '') {
+            const testItems = m.tests.split(',').map(t => t.trim()).filter(Boolean);
+            testItems.forEach(tName => {
+                const price = TEST_PRICES[tName] || 500;
+                grandTotal += price;
+                invoiceItemsHtml += `
+                    <tr>
+                        <td style="text-align: center;">${itemIndex++}</td>
+                        <td>Prescribed Investigation Charge - ${escapeHtml(tName)}</td>
+                        <td style="text-align: right;">Rs ${price.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+        }
         
         const today = new Date().toLocaleDateString('en-US', {
             year: 'numeric',
@@ -1160,13 +1200,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     .print-hospital-sub {
                         font-size: 11px;
                         color: #64748b;
-                        margin: 3px 0 0 0;
+                        margin: 4px 0 0 0;
                     }
                     .print-title {
                         text-align: right;
                     }
                     .print-title h1 {
-                        font-size: 24px;
+                        font-size: 20px;
                         font-weight: 800;
                         margin: 0;
                         color: #0f172a;
@@ -1198,15 +1238,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         margin: 0 0 10px 0;
                     }
                     .print-meta-row {
+                        display: flex;
                         font-size: 12px;
                         margin-bottom: 6px;
-                        color: #334155;
                     }
                     .print-meta-label {
-                        font-weight: 600;
-                        display: inline-block;
                         width: 140px;
                         color: #64748b;
+                        font-weight: 500;
                     }
                     .print-table {
                         width: 100%;
@@ -1214,29 +1253,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         margin-bottom: 24px;
                     }
                     .print-table th, .print-table td {
-                        border: 1px solid #e2e8f0;
+                        border: 1px solid #cbd5e1;
                         padding: 10px 12px;
                         font-size: 12px;
-                        text-align: left;
                     }
                     .print-table th {
-                        background-color: #f1f5f9;
+                        background: #f1f5f9;
                         font-weight: 700;
-                        color: #0f172a;
+                        text-align: left;
                     }
                     .print-prescription-section {
                         border: 1px solid #e2e8f0;
                         padding: 16px 20px;
                         border-radius: 8px;
-                        margin-bottom: 36px;
                         background: #ffffff;
+                        margin-bottom: 30px;
                     }
                     .print-prescription-section h3 {
                         font-size: 12px;
                         font-weight: 700;
                         text-transform: uppercase;
+                        letter-spacing: 0.5px;
                         color: #0f172a;
-                        margin: 0 0 10px 0;
+                        border-bottom: 1px solid #cbd5e1;
+                        padding-bottom: 4px;
+                        margin: 0 0 12px 0;
                     }
                     .print-prescription-text {
                         font-size: 12px;
@@ -1329,20 +1370,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <table class="print-table">
                     <thead>
                         <tr>
-                            <th style="width: 10%;">S.N.</th>
+                            <th style="width: 10%; text-align: center;">S.N.</th>
                             <th style="width: 60%;">Description of Service</th>
                             <th style="width: 30%; text-align: right;">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>OPD Registration Fee & Consultation Charges - ${escapeHtml(formatDoctor(a.doctor))}</td>
-                            <td style="text-align: right;">Rs ${parseFloat(a.charges || 0).toFixed(2)}</td>
-                        </tr>
+                        ${invoiceItemsHtml}
                         <tr>
                             <td colspan="2" style="text-align: right; font-weight: bold;">Grand Total:</td>
-                            <td style="text-align: right; font-weight: bold;">Rs ${parseFloat(a.charges || 0).toFixed(2)}</td>
+                            <td style="text-align: right; font-weight: bold; font-size: 1.05rem; color: #0d9488;">Rs ${grandTotal.toFixed(2)}</td>
                         </tr>
                     </tbody>
                 </table>
