@@ -445,9 +445,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     targetId = existing.id;
                     isEditMode = true;
                 } else {
-                    // For OPD Staff / Admin role: prevent duplicate registration and show duplicate warning
+                    // For OPD Staff / Admin role: auto-switch to Re-visit ticket mode for existing patient
                     const existingId = formatPatientId(existing);
-                    showToast(`Duplicate Patient! "${patientData.personal.name}" is already registered (${existingId}). Please search in Patient Directory.`, true);
+                    showToast(`Existing Patient Found! Automatically converting to Re-visit Ticket for "${patientData.personal.name}" (${existingId}).`, false);
+                    revisitPatient(existing);
                     return;
                 }
             }
