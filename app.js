@@ -905,6 +905,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('description').value = m.description || '';
         document.getElementById('previous-illness').value = m.previousIllness || '';
         document.getElementById('medicines').value = m.medicines || '';
+        if (typeof syncPrescribedTestsUI === 'function') {
+            syncPrescribedTestsUI(m.tests || '');
+        }
 
         document.getElementById('doctor').value = a.doctor || '';
         document.getElementById('block-ward').value = a.blockWard || '';
@@ -969,6 +972,10 @@ document.addEventListener('DOMContentLoaded', () => {
         formTitle.textContent = 'New Patient Registration';
         formSubtitle.textContent = 'Enter details to admit a new patient to the Outpatient Department.';
         btnSubmit.textContent = 'Register Patient';
+
+        if (typeof syncPrescribedTestsUI === 'function') {
+            syncPrescribedTestsUI('');
+        }
 
         applyRolePermissionsToForm(false);
     }
@@ -2649,34 +2656,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Test Chips Logic ---
-    const testChips = document.querySelectorAll('.test-chip-btn');
+    // --- Test Cards & Chips Logic ---
+    const testCards = document.querySelectorAll('.test-card-item, .test-chip-btn');
     const patientTestsInput = document.getElementById('patient-tests');
-    const chargesInput = document.getElementById('charges');
 
-    testChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            const isSelected = chip.classList.toggle('selected');
-            const icon = chip.querySelector('.material-symbols-outlined');
-            if (isSelected) {
-                if (icon) icon.textContent = 'check';
-                chip.style.backgroundColor = 'var(--primary)';
-                chip.style.color = '#fff';
-                chip.style.borderColor = 'var(--primary)';
-            } else {
-                if (icon) icon.textContent = 'add';
-                chip.style.backgroundColor = '';
-                chip.style.color = '';
-                chip.style.borderColor = '';
-            }
-            // Update hidden input
-            const selectedTests = Array.from(document.querySelectorAll('.test-chip-btn.selected'))
+    testCards.forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('selected');
+            
+            // Update hidden input with all selected test names
+            const selectedTests = Array.from(document.querySelectorAll('.test-card-item.selected, .test-chip-btn.selected'))
                 .map(btn => btn.getAttribute('data-test'));
+            
             if (patientTestsInput) {
                 patientTestsInput.value = selectedTests.join(', ');
             }
         });
     });
+
+    window.syncPrescribedTestsUI = function(testsString = '') {
+        const testList = testsString ? testsString.split(',').map(t => t.trim()) : [];
+        testCards.forEach(card => {
+            const name = card.getAttribute('data-test');
+            if (testList.includes(name)) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+        if (patientTestsInput) {
+            patientTestsInput.value = testsString;
+        }
+    };
 
     // --- Pharmacy Printing ---
     window.printPharmacyInvoice = function(patient, pharmacyBill) {

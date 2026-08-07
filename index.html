@@ -620,37 +620,119 @@
                                     <textarea id="medicines" rows="3" placeholder="Enter prescription details..."></textarea>
                                 </div>
                             </div>
-                            <!-- Selectable Tests & Investigations -->
-                            <div class="input-group" style="margin-top: 1rem;">
-                                <label style="font-weight: 600; color: var(--secondary);">Prescribe Tests & Investigations (Click to add)</label>
-                                <div class="test-chips-container" id="test-chips-container">
-                                    <button type="button" class="test-chip-btn" data-test="X-Ray" data-charge="800">
-                                        <span class="material-symbols-outlined">add</span> X-Ray (Rs 800)
-                                    </button>
-                                    <button type="button" class="test-chip-btn" data-test="Video X-Ray" data-charge="1500">
-                                        <span class="material-symbols-outlined">add</span> Video X-Ray (Rs 1500)
-                                    </button>
-                                    <button type="button" class="test-chip-btn" data-test="Blood Test" data-charge="600">
-                                        <span class="material-symbols-outlined">add</span> Blood Test (Rs 600)
-                                    </button>
-                                    <button type="button" class="test-chip-btn" data-test="Urine Test" data-charge="300">
-                                        <span class="material-symbols-outlined">add</span> Urine Test (Rs 300)
-                                    </button>
-                                    <button type="button" class="test-chip-btn" data-test="ECG" data-charge="600">
-                                        <span class="material-symbols-outlined">add</span> ECG (Rs 600)
-                                    </button>
-                                    <button type="button" class="test-chip-btn" data-test="EEG" data-charge="3000">
-                                        <span class="material-symbols-outlined">add</span> EEG (Rs 3000)
-                                    </button>
-                                    <button type="button" class="test-chip-btn" data-test="CT-Scan" data-charge="6500">
-                                        <span class="material-symbols-outlined">add</span> CT-Scan (Rs 6500)
-                                    </button>
-                                    <button type="button" class="test-chip-btn" data-test="MRI" data-charge="9500">
-                                        <span class="material-symbols-outlined">add</span> MRI (Rs 9500)
-                                    </button>
-                                </div>
-                                <input type="hidden" id="patient-tests" value="">
-                            </div>
+                             <!-- Selectable Tests & Investigations -->
+                             <div class="input-group" style="margin-top: 1rem;">
+                                 <label style="font-weight: 600; color: var(--secondary); display: flex; align-items: center; gap: 0.5rem;">
+                                     <span class="material-symbols-outlined" style="font-size: 1.25rem; color: var(--primary);">biotech</span>
+                                     Prescribe Tests & Investigations (Click card to select)
+                                 </label>
+                                 <div class="test-cards-grid" id="test-chips-container">
+                                     <div class="test-card-item" data-test="X-Ray" data-charge="800">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">radiology</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">X-Ray</span>
+                                             <span class="test-card-price">Rs 800</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+
+                                     <div class="test-card-item" data-test="Video X-Ray" data-charge="1500">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">ultrasound</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">Video X-Ray</span>
+                                             <span class="test-card-price">Rs 1,500</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+
+                                     <div class="test-card-item" data-test="Blood Test" data-charge="600">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">bloodtype</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">Blood Test</span>
+                                             <span class="test-card-price">Rs 600</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+
+                                     <div class="test-card-item" data-test="Urine Test" data-charge="300">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">science</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">Urine Test</span>
+                                             <span class="test-card-price">Rs 300</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+
+                                     <div class="test-card-item" data-test="ECG" data-charge="600">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">monitor_heart</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">ECG</span>
+                                             <span class="test-card-price">Rs 600</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+
+                                     <div class="test-card-item" data-test="EEG" data-charge="3000">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">psychology</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">EEG</span>
+                                             <span class="test-card-price">Rs 3,000</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+
+                                     <div class="test-card-item" data-test="CT-Scan" data-charge="6500">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">scanner</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">CT-Scan</span>
+                                             <span class="test-card-price">Rs 6,500</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+
+                                     <div class="test-card-item" data-test="MRI" data-charge="9500">
+                                         <div class="test-card-icon">
+                                             <span class="material-symbols-outlined">health_and_safety</span>
+                                         </div>
+                                         <div class="test-card-content">
+                                             <span class="test-card-name">MRI</span>
+                                             <span class="test-card-price">Rs 9,500</span>
+                                         </div>
+                                         <div class="test-card-badge">
+                                             <span class="material-symbols-outlined">check_circle</span>
+                                         </div>
+                                     </div>
+                                 </div>
+                                 <input type="hidden" id="patient-tests" value="">
+                             </div>
                         </div>
 
                         <!-- Appointment Details -->
