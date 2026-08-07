@@ -2301,7 +2301,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const TEST_PRICES = {
             'X-Ray': 800,
             'Video X-Ray': 1500,
-            'Blood Test': 600
+            'Blood Test': 600,
+            'Urine Test': 300,
+            'ECG': 600,
+            'EEG': 3000,
+            'CT-Scan': 6500,
+            'MRI': 9500
         };
 
         tbody.innerHTML = pendingBills.map(p => {
