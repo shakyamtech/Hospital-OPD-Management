@@ -960,29 +960,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Form Helpers ---
     function collectFormData() {
+        const ageRaw = document.getElementById('patient-age').value;
+        const chargesRaw = document.getElementById('charges').value;
+        const ageVal = parseInt(ageRaw);
+        const chargesVal = parseFloat(chargesRaw);
+
         return {
             personal: {
-                name: document.getElementById('patient-name').value,
-                age: parseInt(document.getElementById('patient-age').value),
-                bloodGroup: document.getElementById('patient-blood').value,
-                contact: document.getElementById('patient-contact').value,
-                address: document.getElementById('patient-address').value,
+                name: document.getElementById('patient-name').value || '',
+                age: isNaN(ageVal) ? 0 : ageVal,
+                bloodGroup: document.getElementById('patient-blood').value || '',
+                contact: document.getElementById('patient-contact').value || '',
+                address: document.getElementById('patient-address').value || '',
             },
             guardian: {
                 name: document.getElementById('guardian-name').value || null,
                 contact: document.getElementById('guardian-contact').value || null,
             },
             medical: {
-                description: document.getElementById('description').value,
+                description: document.getElementById('description').value || '',
                 previousIllness: document.getElementById('previous-illness').value || null,
                 medicines: document.getElementById('medicines').value || null,
                 tests: document.getElementById('patient-tests') ? document.getElementById('patient-tests').value || null : null,
             },
             appointment: {
-                doctor: document.getElementById('doctor').value,
-                blockWard: document.getElementById('block-ward').value,
-                time: document.getElementById('time').value,
-                charges: parseFloat(document.getElementById('charges').value),
+                doctor: document.getElementById('doctor').value || '',
+                blockWard: document.getElementById('block-ward').value || '',
+                time: document.getElementById('time').value || '',
+                charges: isNaN(chargesVal) ? 0 : chargesVal,
                 followupDate: document.getElementById('followup-date').value || null,
                 followupTime: document.getElementById('followup-time').value || null,
             }
@@ -1010,26 +1015,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const adminFields = [
             'patient-name', 'patient-age', 'patient-contact', 'patient-address',
             'guardian-name', 'guardian-contact',
-            'block-ward', 'charges', 'doctor'
+            'block-ward', 'charges'
         ];
         
-        if (role === 'doctor') {
-            // Lock administration/billing fields for doctor if they are editing a patient
+        if (role === 'doctor' && isEditMode) {
+            // Lock administration/billing fields for doctor using readOnly so values are preserved when saving
             adminFields.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.disabled = isEditMode;
+                if (el) {
+                    el.readOnly = true;
+                    el.disabled = false;
+                    el.style.backgroundColor = '#f1f5f9';
+                }
             });
             const doctorSelect = document.getElementById('doctor');
-            if (doctorSelect && docId) {
-                doctorSelect.value = docId;
-                doctorSelect.disabled = true;
+            if (doctorSelect) {
+                doctorSelect.style.pointerEvents = 'none';
+                doctorSelect.disabled = false;
+                doctorSelect.style.backgroundColor = '#f1f5f9';
             }
         } else {
-            // Admins can edit everything
+            // Unlock fields
             adminFields.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.disabled = false;
+                if (el) {
+                    el.readOnly = false;
+                    el.disabled = false;
+                    el.style.backgroundColor = '';
+                }
             });
+            const doctorSelect = document.getElementById('doctor');
+            if (doctorSelect) {
+                doctorSelect.style.pointerEvents = '';
+                doctorSelect.disabled = false;
+                doctorSelect.style.backgroundColor = '';
+                if (role === 'doctor' && docId) {
+                    doctorSelect.value = docId;
+                    doctorSelect.style.pointerEvents = 'none';
+                    doctorSelect.style.backgroundColor = '#f1f5f9';
+                }
+            }
         }
 
         // Handle visibility of doctor-only sections
