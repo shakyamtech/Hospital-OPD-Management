@@ -697,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!patients.length) {
             directoryTbody.innerHTML = `
                 <tr>
-                    <td colspan="6">
+                    <td colspan="7">
                         <div class="table-empty">
                             <span class="material-symbols-outlined">person_off</span>
                             <p>No patients found.</p>
@@ -714,6 +714,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const time = p.appointment?.time || '—';
             const contact = p.personal?.contact || '—';
 
+            const isChecked = !!(
+                (p.medical?.description && p.medical.description.trim() !== '') ||
+                (p.medical?.medicines && p.medical.medicines.trim() !== '') ||
+                (p.medical?.tests && p.medical.tests.trim() !== '')
+            );
+
+            const statusBadge = isChecked
+                ? `<span style="background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; font-weight:600; display:inline-flex; align-items:center; gap:0.25rem; padding:0.25rem 0.6rem; border-radius:1rem; font-size:0.78rem;">
+                    <span class="material-symbols-outlined" style="font-size:1.05rem; color:#16a34a;">check_circle</span>
+                    Checked
+                   </span>`
+                : `<span style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-weight:600; display:inline-flex; align-items:center; gap:0.25rem; padding:0.25rem 0.6rem; border-radius:1rem; font-size:0.78rem;">
+                    <span class="material-symbols-outlined" style="font-size:1.05rem; color:#d97706;">pending</span>
+                    Pending
+                   </span>`;
+
             return `
                 <tr>
                     <td>
@@ -724,6 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${escapeHtml(doctor)}</td>
                     <td>${escapeHtml(time)}</td>
                     <td>${escapeHtml(contact)}</td>
+                    <td>${statusBadge}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="btn-action view" onclick="window._viewPatient('${p.id}')" title="View">
