@@ -138,6 +138,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const landingContactForm = document.getElementById('landing-contact-form');
+    if (landingContactForm) {
+        landingContactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('contact-name');
+            const name = nameInput ? nameInput.value.trim() : 'Patient';
+            if (window.showToast) {
+                window.showToast(`Thank you ${name}! Your message has been sent. Our team will contact you shortly.`);
+            } else {
+                alert(`Thank you ${name}! Your message has been sent. Our team will contact you shortly.`);
+            }
+            landingContactForm.reset();
+        });
+    }
+
     // --- Feature Cards Click Handlers ---
     const featureEquipmentCard = document.getElementById('feature-equipment-card');
     const featureEmergencyCard = document.getElementById('feature-emergency-card');

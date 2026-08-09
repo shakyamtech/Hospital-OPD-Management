@@ -1574,6 +1574,7 @@ body {
     overflow-y: auto;
     background-color: var(--surface);
     display: none;
+    scroll-behavior: smooth;
 }
 #landing-view.active {
     display: block;
