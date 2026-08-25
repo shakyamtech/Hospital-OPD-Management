@@ -1502,7 +1502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 
                 <div class="print-sys-info">
-                    This slip is generated electronically. Powered by OPD Connect - Khataplus Solutions Concept
+                    This slip is generated electronically. Powered by OPD Connect
                 </div>
             </body>
             </html>
