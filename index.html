@@ -621,13 +621,14 @@
                                 <p id="ov-consult-revenue">Rs 0.00</p>
                             </div>
                         </div>
-                        <div class="stat-card" id="kpi-card-pharmacy-sales" onclick="if(document.getElementById('tab-pharmacy')) document.getElementById('tab-pharmacy').click()" title="Click to view Pharmacy Sales">
+                        <div class="stat-card" id="kpi-card-pharmacy-sales" onclick="if(document.getElementById('tab-pharmacy')) document.getElementById('tab-pharmacy').click()" title="Click to view Pharmacy Sales & Profit">
                             <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
                                 <span class="material-symbols-outlined">point_of_sale</span>
                             </div>
                             <div class="stat-info">
                                 <h3>Pharmacy Sales</h3>
                                 <p id="ov-pharmacy-sales">Rs 0.00</p>
+                                <span id="ov-pharmacy-profit" style="font-size: 0.78rem; font-weight: 600; color: #10b981; display: block; margin-top: 3px;">Net Profit: Rs 0.00</span>
                             </div>
                         </div>
                         <div class="stat-card" id="kpi-card-pending-requests" onclick="if(document.getElementById('tab-requests')) document.getElementById('tab-requests').click()" title="Click to view Online Requests">
@@ -1181,6 +1182,24 @@
                                 <p id="stat-total-sold">0 units</p>
                             </div>
                         </div>
+                        <div class="stat-card" id="card-stat-profit" title="Click to view Sales & Net Profit">
+                            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;">
+                                <span class="material-symbols-outlined">trending_up</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Net Profit</h3>
+                                <p id="stat-total-profit" style="color: #059669;">Rs 0.00</p>
+                            </div>
+                        </div>
+                        <div class="stat-card" id="card-stat-valuation" title="Total Purchase Cost Value of Remaining Stock">
+                            <div class="stat-icon" style="background: rgba(14, 165, 233, 0.1); color: #0284c7;">
+                                <span class="material-symbols-outlined">account_balance_wallet</span>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Stock Valuation (Cost)</h3>
+                                <p id="stat-stock-valuation">Rs 0.00</p>
+                            </div>
+                        </div>
                         <div class="stat-card" id="card-stat-remaining" title="Click to filter in-stock / remaining medicines">
                             <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
                                 <span class="material-symbols-outlined">inventory</span>
@@ -1245,10 +1264,12 @@
                                     <tr>
                                         <th>Medicine Name</th>
                                         <th>Category</th>
-                                        <th>Unit Price (Rs)</th>
+                                        <th>Cost Price (CP)</th>
+                                        <th>Selling Price (SP)</th>
+                                        <th>Unit Margin</th>
                                         <th>Total Stock</th>
-                                        <th>Sold Qty (Kati Bechyo)</th>
-                                        <th>Remaining (Kati Baki)</th>
+                                        <th>Sold Qty</th>
+                                        <th>Remaining</th>
                                         <th style="white-space: nowrap;">Expiry Date</th>
                                         <th>Status</th>
                                         <th>Actions</th>
@@ -1308,14 +1329,42 @@
                                 Clear Sales History
                             </button>
                         </div>
+
+                        <!-- Sales Summary Highlights -->
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                            <div class="glass-panel" style="flex: 1; min-width: 200px; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #8b5cf6;">
+                                <div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Total Sales Revenue</div>
+                                    <div id="sales-total-revenue" style="font-size: 1.25rem; font-weight: 700; color: #8b5cf6; margin-top: 2px;">Rs 0.00</div>
+                                </div>
+                                <span class="material-symbols-outlined" style="font-size: 2rem; color: #8b5cf6; opacity: 0.8;">point_of_sale</span>
+                            </div>
+                            <div class="glass-panel" style="flex: 1; min-width: 200px; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #3b82f6;">
+                                <div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Total Purchase Cost</div>
+                                    <div id="sales-total-cost" style="font-size: 1.25rem; font-weight: 700; color: #3b82f6; margin-top: 2px;">Rs 0.00</div>
+                                </div>
+                                <span class="material-symbols-outlined" style="font-size: 2rem; color: #3b82f6; opacity: 0.8;">shopping_bag</span>
+                            </div>
+                            <div class="glass-panel" style="flex: 1; min-width: 200px; padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #10b981;">
+                                <div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Total Net Profit (नाफा)</div>
+                                    <div id="sales-total-profit" style="font-size: 1.25rem; font-weight: 700; color: #10b981; margin-top: 2px;">Rs 0.00</div>
+                                </div>
+                                <span class="material-symbols-outlined" style="font-size: 2rem; color: #10b981; opacity: 0.8;">trending_up</span>
+                            </div>
+                        </div>
+
                         <div class="glass-panel table-container">
                             <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Date & Time</th>
-                                        <th>Patient Name</th>
+                                        <th>Patient / Customer</th>
                                         <th>Dispensed Medicines</th>
-                                        <th>Total Amount</th>
+                                        <th>Sales Amount (SP)</th>
+                                        <th>Total Cost (CP)</th>
+                                        <th>Net Profit</th>
                                     </tr>
                                 </thead>
                                 <tbody id="sales-tbody">
@@ -1740,23 +1789,32 @@
                                 </select>
                             </div>
                             <div class="input-group">
-                                <label for="med-price">Unit Price (Rs)</label>
-                                <input type="number" step="0.01" id="med-price" required placeholder="e.g. 10.00">
+                                <label for="med-expiry">Expiry Date (Optional)</label>
+                                <input type="date" id="med-expiry">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="input-group">
-                                <label for="med-stock">Total Stock Quantity</label>
+                                <label for="med-cost-price">Cost Price (CP / खरिद दर Rs)</label>
+                                <input type="number" step="0.01" id="med-cost-price" placeholder="e.g. 8.00" value="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="med-price">Selling Price (SP / बिक्री दर Rs) *</label>
+                                <input type="number" step="0.01" id="med-price" required placeholder="e.g. 10.00">
+                            </div>
+                        </div>
+                        <div id="med-margin-preview" style="font-size: 0.85rem; color: #059669; font-weight: 600; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 6px; border: 1px dashed rgba(16, 185, 129, 0.4); display: none;">
+                            Margin / Profit per unit: Rs 0.00 (0%)
+                        </div>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="med-stock">Total Stock Quantity *</label>
                                 <input type="number" id="med-stock" required placeholder="e.g. 100">
                             </div>
                             <div class="input-group">
-                                <label for="med-min-alert">Low Stock Alert Threshold</label>
+                                <label for="med-min-alert">Low Stock Alert Threshold *</label>
                                 <input type="number" id="med-min-alert" value="10" required placeholder="e.g. 10">
                             </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="med-expiry">Expiry Date (Optional)</label>
-                            <input type="date" id="med-expiry">
                         </div>
                     </div>
                     <div class="form-actions" style="margin-top: 1.5rem;">

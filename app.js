@@ -1642,8 +1642,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 const sales = data.sales || [];
                 let pharmTotal = 0;
-                sales.forEach(s => pharmTotal += parseFloat(s.grand_total || 0));
+                let profitTotal = 0;
+                sales.forEach(s => {
+                    const grand = parseFloat(s.grand_total || 0);
+                    pharmTotal += grand;
+                    let costSum = 0;
+                    (s.items || []).forEach(it => {
+                        const qty = it.qty || 1;
+                        let cp = it.cost_price;
+                        if (cp === undefined || cp === null || cp === 0) {
+                            const matched = (typeof medicinesCache !== 'undefined' && medicinesCache) ? medicinesCache.find(m => m.name.toLowerCase().trim() === (it.name || '').toLowerCase().trim()) : null;
+                            cp = matched ? (matched.cost_price || 0) : 0;
+                        }
+                        costSum += (parseFloat(cp) * qty);
+                    });
+                    profitTotal += (grand - costSum);
+                });
                 if (pharmacySalesElem) pharmacySalesElem.textContent = `Rs ${pharmTotal.toFixed(2)}`;
+                const ovProfitElem = document.getElementById('ov-pharmacy-profit');
+                if (ovProfitElem) {
+                    ovProfitElem.textContent = `Net Profit: Rs ${profitTotal.toFixed(2)}`;
+                }
             }
         } catch (err) {
             console.warn('Pharmacy sales fetch error:', err);
@@ -2659,7 +2678,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         datalist.innerHTML = medicinesCache.map(m => {
             const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - (m.sold_qty || 0));
-            const price = parseFloat(m.price || 0).toFixed(2);
+            const price = parseFloat(m.unit_price !== undefined ? m.unit_price : (m.price || 0)).toFixed(2);
             return `<option value="${escapeHtml(m.name)}">Stock: ${rem} | Rs ${price}</option>`;
         }).join('');
     }
@@ -2672,12 +2691,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const tr = inputElem.closest('tr');
         if (!tr) return;
 
-        const matched = medicinesCache.find(m => m.name.trim().toLowerCase() === val);
+        const matched = medicinesCache.find(m => m.name.trim().toLowerCase() === val) ||
+                        medicinesCache.find(m => val.startsWith(m.name.trim().toLowerCase()));
         if (matched) {
             inputElem.value = matched.name;
             const rateInput = tr.querySelector('.pharm-rate') || tr.querySelector('.counter-rate');
             if (rateInput) {
-                rateInput.value = matched.price || 0;
+                const price = (matched.unit_price !== undefined && matched.unit_price !== null) ? matched.unit_price : (matched.price || 0);
+                rateInput.value = price;
                 if (tr.querySelector('.pharm-rate') && typeof window._updatePharmRowTotal === 'function') {
                     window._updatePharmRowTotal(rateInput);
                 } else if (tr.querySelector('.counter-rate') && typeof window._updateCounterRowTotal === 'function') {
@@ -2720,7 +2741,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let n = med.name;
                 if ((r === 0 || !r) && medicinesCache.length > 0) {
                     const m = medicinesCache.find(x => x.name.toLowerCase().trim() === n.toLowerCase().trim());
-                    if (m) r = m.price || 0;
+                    if (m) r = (m.unit_price !== undefined && m.unit_price !== null) ? m.unit_price : (m.price || 0);
                 }
                 addPharmacyRow(n, med.qty, r);
             });
@@ -2736,7 +2757,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                    || medicinesCache.find(m => norm.includes(m.name.toLowerCase().trim()) || m.name.toLowerCase().trim().includes(norm));
                         if (match) {
                             finalName = match.name;
-                            matchedRate = match.price || 0;
+                            matchedRate = (match.unit_price !== undefined && match.unit_price !== null) ? match.unit_price : (match.price || 0);
                         }
                     }
                     addPharmacyRow(finalName, 1, matchedRate);
@@ -3269,7 +3290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">No medicines found matching filter criteria.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 2rem;">No medicines found matching filter criteria.</td></tr>`;
             return;
         }
 
@@ -3277,7 +3298,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const sold = m.sold_qty || 0;
             const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - sold);
             const minAlert = m.min_stock_alert || 10;
-            const unitPrice = parseFloat(m.unit_price || 0).toFixed(2);
+            const costPrice = parseFloat(m.cost_price || 0);
+            const sellingPrice = parseFloat(m.unit_price !== undefined ? m.unit_price : (m.price || 0));
+            const margin = sellingPrice - costPrice;
+            const marginPct = costPrice > 0 ? ((margin / costPrice) * 100).toFixed(0) : (sellingPrice > 0 ? '100' : '0');
 
             let statusBadge = '<span class="badge-instock"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> In Stock</span>';
             if (rem <= 0) {
@@ -3286,11 +3310,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusBadge = '<span class="badge-lowstock"><span class="material-symbols-outlined" style="font-size:14px;">warning</span> Low Stock</span>';
             }
 
+            const marginBadge = margin >= 0 
+                ? `<span style="color: #059669; font-weight: 600; font-size: 0.85rem;">+Rs ${margin.toFixed(2)} <span style="font-size: 0.75rem; opacity: 0.85;">(${marginPct}%)</span></span>`
+                : `<span style="color: #dc2626; font-weight: 600; font-size: 0.85rem;">-Rs ${Math.abs(margin).toFixed(2)}</span>`;
+
             return `
                 <tr>
                     <td><strong>${escapeHtml(m.name)}</strong></td>
                     <td>${escapeHtml(m.category || 'Tablet')}</td>
-                    <td>Rs ${unitPrice}</td>
+                    <td style="color: #64748b;">Rs ${costPrice.toFixed(2)}</td>
+                    <td><strong style="color: var(--text-primary);">Rs ${sellingPrice.toFixed(2)}</strong></td>
+                    <td>${marginBadge}</td>
                     <td>${m.total_stock}</td>
                     <td><strong style="color: #10b981;">${sold} units</strong></td>
                     <td><strong style="color: ${rem <= minAlert ? '#dc2626' : '#3b82f6'};">${rem} units</strong></td>
@@ -3317,11 +3347,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const remStockElem = document.getElementById('stat-remaining-stock');
         const lowStockElem = document.getElementById('stat-low-stock');
         const expiryAlertsElem = document.getElementById('stat-expiry-alerts');
+        const stockValuationElem = document.getElementById('stat-stock-valuation');
 
         let totalSold = 0;
         let totalRemaining = 0;
         let lowStockCount = 0;
         let expiryAlertsCount = 0;
+        let stockValuation = 0;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -3331,9 +3363,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const sold = m.sold_qty || 0;
             const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - sold);
             const minAlert = m.min_stock_alert || 10;
+            const costPrice = parseFloat(m.cost_price || 0);
 
             totalSold += sold;
             totalRemaining += rem;
+            stockValuation += (rem * costPrice);
             if (rem <= minAlert) lowStockCount++;
 
             if (m.expiry_date) {
@@ -3350,6 +3384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (remStockElem) remStockElem.textContent = `${totalRemaining} units`;
         if (lowStockElem) lowStockElem.textContent = `${lowStockCount} items`;
         if (expiryAlertsElem) expiryAlertsElem.textContent = `${expiryAlertsCount} items`;
+        if (stockValuationElem) stockValuationElem.textContent = `Rs ${stockValuation.toFixed(2)}`;
     }
 
     document.getElementById('inventory-search')?.addEventListener('input', renderInventory);
@@ -3368,6 +3403,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterSelect = document.getElementById('filter-stock-status');
         if (filterSelect) {
             filterSelect.value = 'sold';
+            renderInventory();
+        }
+    });
+
+    document.getElementById('card-stat-profit')?.addEventListener('click', () => {
+        if (typeof switchPharmacySubtab === 'function') {
+            switchPharmacySubtab('sales');
+        }
+    });
+
+    document.getElementById('card-stat-valuation')?.addEventListener('click', () => {
+        const filterSelect = document.getElementById('filter-stock-status');
+        if (filterSelect) {
+            filterSelect.value = 'instock';
             renderInventory();
         }
     });
@@ -3402,6 +3451,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const medCancelBtn = document.getElementById('med-cancel-btn');
     const medForm = document.getElementById('medicine-form');
 
+    function updateMedMarginPreview() {
+        const cp = parseFloat(document.getElementById('med-cost-price')?.value) || 0;
+        const sp = parseFloat(document.getElementById('med-price')?.value) || 0;
+        const preview = document.getElementById('med-margin-preview');
+        if (!preview) return;
+        if (sp > 0 || cp > 0) {
+            const margin = sp - cp;
+            const pct = cp > 0 ? ((margin / cp) * 100).toFixed(0) : (sp > 0 ? '100' : '0');
+            preview.style.display = 'block';
+            if (margin >= 0) {
+                preview.style.color = '#059669';
+                preview.style.background = 'rgba(16, 185, 129, 0.1)';
+                preview.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                preview.textContent = `Margin / Profit per unit: Rs ${margin.toFixed(2)} (+${pct}%)`;
+            } else {
+                preview.style.color = '#dc2626';
+                preview.style.background = 'rgba(239, 68, 68, 0.1)';
+                preview.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                preview.textContent = `Loss per unit: -Rs ${Math.abs(margin).toFixed(2)} (${pct}%)`;
+            }
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    document.getElementById('med-cost-price')?.addEventListener('input', updateMedMarginPreview);
+    document.getElementById('med-price')?.addEventListener('input', updateMedMarginPreview);
+
     if (btnOpenMedModal) {
         btnOpenMedModal.addEventListener('click', () => window._openMedicineModal());
     }
@@ -3412,12 +3489,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('med-id').value = med ? med.id : '';
         document.getElementById('med-name').value = med ? med.name : '';
         document.getElementById('med-category').value = med ? (med.category || 'Tablet') : 'Tablet';
-        document.getElementById('med-price').value = med ? med.unit_price : '';
+        document.getElementById('med-cost-price').value = med ? (med.cost_price !== undefined ? med.cost_price : 0) : 0;
+        document.getElementById('med-price').value = med ? (med.unit_price !== undefined ? med.unit_price : (med.price || '')) : '';
         document.getElementById('med-stock').value = med ? med.total_stock : '';
         document.getElementById('med-min-alert').value = med ? (med.min_stock_alert || 10) : 10;
         document.getElementById('med-expiry').value = med ? (med.expiry_date || '') : '';
         
         document.getElementById('medicine-modal-title').textContent = med ? 'Edit Medicine / Restock' : 'Add New Medicine';
+        updateMedMarginPreview();
         medModal.classList.add('active');
     };
 
@@ -3448,6 +3527,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = document.getElementById('med-id').value;
             const name = document.getElementById('med-name').value.trim();
             const category = document.getElementById('med-category').value;
+            const costPrice = parseFloat(document.getElementById('med-cost-price').value) || 0;
             const unitPrice = parseFloat(document.getElementById('med-price').value) || 0;
             const totalStock = parseInt(document.getElementById('med-stock').value) || 0;
             const minAlert = parseInt(document.getElementById('med-min-alert').value) || 10;
@@ -3460,6 +3540,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 name,
                 category,
+                cost_price: costPrice,
                 unit_price: unitPrice,
                 total_stock: totalStock,
                 sold_qty: soldQty,
@@ -3501,26 +3582,74 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const data = await response.json();
                 const sales = data.sales || [];
+                
+                let totalRev = 0;
+                let totalCost = 0;
+                let totalProfit = 0;
+
                 if (sales.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:2rem;">No sales recorded yet.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem;">No sales recorded yet.</td></tr>`;
+                    updateSalesSummaryDisplay(0, 0, 0);
                     return;
                 }
+
                 tbody.innerHTML = sales.map(s => {
                     const dateStr = s.timestamp ? new Date(s.timestamp).toLocaleString() : 'N/A';
-                    const itemsStr = (s.items || []).map(i => `${i.name} (x${i.qty})`).join(', ');
+                    const grand = parseFloat(s.grand_total || 0);
+                    totalRev += grand;
+
+                    let billCost = 0;
+                    const itemsList = (s.items || []).map(i => {
+                        const qty = i.qty || 1;
+                        let cp = i.cost_price;
+                        if (cp === undefined || cp === null || cp === 0) {
+                            const matched = (typeof medicinesCache !== 'undefined' && medicinesCache) ? medicinesCache.find(m => m.name.toLowerCase().trim() === (i.name || '').toLowerCase().trim()) : null;
+                            cp = matched ? (matched.cost_price || 0) : 0;
+                        }
+                        const itemCost = parseFloat(cp) * qty;
+                        billCost += itemCost;
+                        return `${escapeHtml(i.name)} (x${qty})`;
+                    });
+
+                    totalCost += billCost;
+                    const billProfit = grand - billCost;
+                    totalProfit += billProfit;
+
+                    const profitBadge = billProfit >= 0
+                        ? `<span style="color: #059669; font-weight: 700;">+Rs ${billProfit.toFixed(2)}</span>`
+                        : `<span style="color: #dc2626; font-weight: 700;">-Rs ${Math.abs(billProfit).toFixed(2)}</span>`;
+
                     return `
                         <tr>
                             <td>${dateStr}</td>
                             <td><strong>${escapeHtml(s.patient_name || 'Patient')}</strong></td>
-                            <td>${escapeHtml(itemsStr)}</td>
-                            <td><strong style="color: #10b981;">Rs ${parseFloat(s.grand_total || 0).toFixed(2)}</strong></td>
+                            <td>${itemsList.join(', ')}</td>
+                            <td><strong>Rs ${grand.toFixed(2)}</strong></td>
+                            <td style="color: #64748b;">Rs ${billCost.toFixed(2)}</td>
+                            <td>${profitBadge}</td>
                         </tr>
                     `;
                 }).join('');
+
+                updateSalesSummaryDisplay(totalRev, totalCost, totalProfit);
             }
         } catch (error) {
             console.error('Error fetching sales log:', error);
         }
+    }
+
+    function updateSalesSummaryDisplay(rev, cost, profit) {
+        const revElem = document.getElementById('sales-total-revenue');
+        const costElem = document.getElementById('sales-total-cost');
+        const profitElem = document.getElementById('sales-total-profit');
+        const statProfitElem = document.getElementById('stat-total-profit');
+        const ovProfitElem = document.getElementById('ov-pharmacy-profit');
+
+        if (revElem) revElem.textContent = `Rs ${rev.toFixed(2)}`;
+        if (costElem) costElem.textContent = `Rs ${cost.toFixed(2)}`;
+        if (profitElem) profitElem.textContent = `Rs ${profit.toFixed(2)}`;
+        if (statProfitElem) statProfitElem.textContent = `Rs ${profit.toFixed(2)}`;
+        if (ovProfitElem) ovProfitElem.textContent = `Net Profit: Rs ${profit.toFixed(2)}`;
     }
 
     // Load initial medicines data when tab loaded

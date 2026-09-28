@@ -325,7 +325,9 @@ async def dispense_medicines(patient_id: str, req: DispenseRequest):
             meds_by_id[d.id] = m_dict
 
         # Process each item in prescription/dispense bill
+        items_dict = []
         for item in req.items:
+            it_data = item.model_dump()
             m_name_lower = item.name.strip().lower()
             matched_med = meds_by_name.get(m_name_lower)
             if matched_med:
@@ -341,10 +343,12 @@ async def dispense_medicines(patient_id: str, req: DispenseRequest):
                     "remaining_stock": new_rem,
                     "sold_qty": new_sold
                 })
+                if not it_data.get("cost_price"):
+                    it_data["cost_price"] = matched_med.get("cost_price", 0.0)
+            items_dict.append(it_data)
 
         # Update patient document pharmacy payment status and pharmacy bill
         patient_data["appointment"]["pharmacyPaymentStatus"] = "paid"
-        items_dict = [it.model_dump() for it in req.items]
         patient_data["appointment"]["pharmacyBill"] = items_dict
         patient_ref.set(patient_data)
 
@@ -380,7 +384,9 @@ async def dispense_direct_sale(req: DirectDispenseRequest):
             meds_by_name[m_dict.get("name", "").strip().lower()] = m_dict
 
         # Process each item
+        items_dict = []
         for item in req.items:
+            it_data = item.model_dump()
             m_name_lower = item.name.strip().lower()
             matched_med = meds_by_name.get(m_name_lower)
             if matched_med:
@@ -395,10 +401,12 @@ async def dispense_direct_sale(req: DirectDispenseRequest):
                     "remaining_stock": new_rem,
                     "sold_qty": new_sold
                 })
+                if not it_data.get("cost_price"):
+                    it_data["cost_price"] = matched_med.get("cost_price", 0.0)
+            items_dict.append(it_data)
 
         # Record sales log
         import datetime
-        items_dict = [it.model_dump() for it in req.items]
         cust_name = req.customer_name.strip() if req.customer_name and req.customer_name.strip() else "Walk-in Customer"
         sale_log = {
             "patient_id": "COUNTER-SALE",

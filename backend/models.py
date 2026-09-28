@@ -28,6 +28,7 @@ class MedicineItem(BaseModel):
     qty: int
     rate: float
     total: float
+    cost_price: Optional[float] = 0.0
 
 class AppointmentDetails(BaseModel):
     doctor: str
@@ -57,6 +58,7 @@ class Medicine(BaseModel):
     name: str
     category: str = "Tablet"
     unit_price: float
+    cost_price: Optional[float] = 0.0
     total_stock: int
     sold_qty: int = 0
     remaining_stock: int
