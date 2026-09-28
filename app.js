@@ -1771,6 +1771,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Topbar Profile Dropdown Toggle (KhataPlus style)
+    const topbarProfileWrapper = document.getElementById('topbar-profile-wrapper');
+    const topbarProfileBtn = document.getElementById('topbar-profile-btn');
+
+    if (topbarProfileBtn && topbarProfileWrapper) {
+        topbarProfileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            topbarProfileWrapper.classList.toggle('active');
+        });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (topbarProfileWrapper && !topbarProfileWrapper.contains(e.target)) {
+            topbarProfileWrapper.classList.remove('active');
+        }
+    });
+
+    // Dropdown Navigation Items
+    const dropdownOverview = document.getElementById('dropdown-item-overview');
+    const dropdownDirectory = document.getElementById('dropdown-item-directory');
+    const dropdownPharmacy = document.getElementById('dropdown-item-pharmacy');
+    const dropdownSettings = document.getElementById('dropdown-item-settings');
+
+    if (dropdownOverview) {
+        dropdownOverview.addEventListener('click', () => {
+            if (topbarProfileWrapper) topbarProfileWrapper.classList.remove('active');
+            switchTab('dashboard-overview');
+            loadDashboardOverview();
+        });
+    }
+    if (dropdownDirectory) {
+        dropdownDirectory.addEventListener('click', () => {
+            if (topbarProfileWrapper) topbarProfileWrapper.classList.remove('active');
+            switchTab('directory');
+            loadPatients();
+        });
+    }
+    if (dropdownPharmacy) {
+        dropdownPharmacy.addEventListener('click', () => {
+            if (topbarProfileWrapper) topbarProfileWrapper.classList.remove('active');
+            switchTab('pharmacy');
+            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('inventory');
+            if (typeof loadPharmacy === 'function') loadPharmacy();
+            if (typeof fetchMedicines === 'function') fetchMedicines();
+        });
+    }
+    if (dropdownSettings) {
+        dropdownSettings.addEventListener('click', () => {
+            if (topbarProfileWrapper) topbarProfileWrapper.classList.remove('active');
+            switchTab('settings');
+            if (typeof fetchDoctors === 'function') fetchDoctors();
+        });
+    }
+
     // --- View Helpers ---
     function showLanding() {
         dashboardView.classList.remove('active');
@@ -1793,6 +1848,52 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = localStorage.getItem('opd_username') || 'Dr. Admin';
         const docId = localStorage.getItem('opd_doctor_id') || '';
 
+        const roleNameMap = {
+            'admin': 'Administrator',
+            'staff': 'Staff Member',
+            'doctor': 'Attending Doctor',
+            'cashier': 'Cashier',
+            'pharmacy': 'Pharmacist'
+        };
+        const roleLabel = roleNameMap[role] || role;
+
+        // Initials calculation for avatar
+        let initials = 'AD';
+        if (name) {
+            const cleanName = name.replace(/^Dr\.\s*/i, '').trim();
+            const parts = cleanName.split(/\s+/).filter(Boolean);
+            if (parts.length >= 2) {
+                initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            } else if (parts.length === 1 && parts[0].length >= 2) {
+                initials = parts[0].substring(0, 2).toUpperCase();
+            } else if (parts.length === 1) {
+                initials = parts[0][0].toUpperCase();
+            }
+        }
+
+        // Update Topbar Profile & Dropdown
+        const topbarUserName = document.getElementById('topbar-user-name');
+        const topbarUserRole = document.getElementById('topbar-user-role');
+        const topbarAvatarText = document.getElementById('topbar-avatar-text');
+        const dropdownUserName = document.getElementById('dropdown-user-name');
+        const dropdownUserRole = document.getElementById('dropdown-user-role');
+        const dropdownAvatarText = document.getElementById('dropdown-avatar-text');
+
+        if (topbarUserName) topbarUserName.textContent = name;
+        if (topbarUserRole) topbarUserRole.textContent = roleLabel;
+        if (topbarAvatarText) topbarAvatarText.textContent = initials;
+        if (dropdownUserName) dropdownUserName.textContent = name;
+        if (dropdownUserRole) dropdownUserRole.textContent = roleLabel.toUpperCase();
+        if (dropdownAvatarText) dropdownAvatarText.textContent = initials;
+
+        // Hide/show dropdown menu items based on role permissions
+        if (dropdownPharmacy) {
+            dropdownPharmacy.style.display = (role === 'admin' || role === 'pharmacy') ? 'flex' : 'none';
+        }
+        if (dropdownSettings) {
+            dropdownSettings.style.display = (role === 'admin') ? 'flex' : 'none';
+        }
+
         const userNameEl = document.querySelector('.user-name');
         if (userNameEl) {
             userNameEl.textContent = name;
@@ -1800,14 +1901,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const roleBadgeEl = document.getElementById('user-role-badge');
         if (roleBadgeEl) {
-            const roleNameMap = {
-                'admin': 'Administrator',
-                'staff': 'Staff Member',
-                'doctor': 'Attending Doctor',
-                'cashier': 'Cashier',
-                'pharmacy': 'Pharmacist'
-            };
-            roleBadgeEl.textContent = roleNameMap[role] || role;
+            roleBadgeEl.textContent = roleLabel;
         }
 
         // Setup UI state depending on role

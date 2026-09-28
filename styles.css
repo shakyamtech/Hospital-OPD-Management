@@ -2451,14 +2451,21 @@ body {
 .main-topbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
-    padding: 1rem 2rem;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
+    padding: 0.85rem 2rem;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 90;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
 }
 
 .sidebar-toggle {
@@ -2467,6 +2474,8 @@ body {
     border: 1px solid var(--border);
     padding: 0.4rem;
     border-radius: var(--radius-sm);
+    color: var(--text-main);
+    cursor: pointer;
 }
 
 .topbar-title h3 {
@@ -2474,6 +2483,241 @@ body {
     font-weight: 700;
     color: var(--text-main);
     margin: 0;
+}
+
+/* --- KhataPlus-style Top Right Profile Dropdown --- */
+.topbar-user-profile-wrapper {
+    position: relative;
+    user-select: none;
+}
+
+.topbar-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 4px 10px 4px 4px;
+    background: #ffffff;
+    border: 1px solid rgba(13, 148, 136, 0.25);
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.topbar-profile-btn:hover,
+.topbar-user-profile-wrapper.active .topbar-profile-btn {
+    background: #ffffff;
+    border-color: #0d9488;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.18);
+    transform: translateY(-1px);
+}
+
+.topbar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: 0.5px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.topbar-user-meta {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    line-height: 1.25;
+}
+
+.topbar-user-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-main);
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.topbar-user-role {
+    font-size: 0.72rem;
+    color: #0d9488;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.topbar-chevron {
+    font-size: 1.25rem;
+    color: #64748b;
+    transition: transform 0.2s ease;
+    margin-left: 2px;
+}
+
+.topbar-user-profile-wrapper.active .topbar-chevron {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu Popup */
+.topbar-profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 250px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(13, 148, 136, 0.2);
+    box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 0.6rem;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    animation: topbarDropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes topbarDropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.topbar-user-profile-wrapper.active .topbar-profile-dropdown {
+    display: flex;
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.65rem 0.75rem 0.5rem;
+}
+
+.dropdown-user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d9488 0%, #047857 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.dropdown-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dropdown-user-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dropdown-user-details h4 {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-role-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #0d9488;
+    background: rgba(13, 148, 136, 0.12);
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    width: fit-content;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 0.45rem 0;
+}
+
+.dropdown-menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.dropdown-item .material-symbols-outlined {
+    font-size: 1.25rem;
+    color: #64748b;
+    transition: color 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background: #f1f5f9;
+    color: #0d9488;
+}
+
+.dropdown-item:hover .material-symbols-outlined {
+    color: #0d9488;
+}
+
+.dropdown-logout-btn {
+    color: #ef4444 !important;
+}
+
+.dropdown-logout-btn .material-symbols-outlined {
+    color: #ef4444 !important;
+}
+
+.dropdown-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #dc2626 !important;
 }
 
 /* Adjust Dashboard Content container */
