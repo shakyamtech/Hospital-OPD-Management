@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabPharmacy) {
         tabPharmacy.addEventListener('click', () => {
             switchTab('pharmacy');
-            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('inventory');
+            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('counter');
             if (typeof loadPharmacy === 'function') loadPharmacy();
             if (typeof fetchMedicines === 'function') fetchMedicines();
         });
@@ -1813,7 +1813,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdownPharmacy.addEventListener('click', () => {
             if (topbarProfileWrapper) topbarProfileWrapper.classList.remove('active');
             switchTab('pharmacy');
-            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('inventory');
+            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('counter');
             if (typeof loadPharmacy === 'function') loadPharmacy();
             if (typeof fetchMedicines === 'function') fetchMedicines();
         });
@@ -1932,7 +1932,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabSettings) tabSettings.style.display = 'none';
             if (tabRequests) tabRequests.style.display = 'none';
             switchTab('pharmacy');
-            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('inventory');
+            if (typeof switchPharmacySubtab === 'function') switchPharmacySubtab('counter');
             if (typeof loadPharmacy === 'function') loadPharmacy();
             if (typeof fetchMedicines === 'function') fetchMedicines();
         } else if (role === 'cashier') {
