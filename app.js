@@ -1618,16 +1618,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filter KPI Stat Cards based on logged in role
         const kpiConsult = document.getElementById('kpi-card-consult-revenue');
+        const kpiLab = document.getElementById('kpi-card-lab-revenue');
         const kpiPending = document.getElementById('kpi-card-pending-requests');
         const kpiPharmacy = document.getElementById('kpi-card-pharmacy-sales');
 
         if (kpiConsult) kpiConsult.style.display = (role === 'pharmacy' || role === 'doctor') ? 'none' : 'flex';
+        if (kpiLab) kpiLab.style.display = (role === 'pharmacy' || role === 'doctor') ? 'none' : 'flex';
         if (kpiPharmacy) kpiPharmacy.style.display = (role === 'doctor') ? 'none' : 'flex';
         if (kpiPending) kpiPending.style.display = (role === 'pharmacy' || role === 'cashier' || role === 'doctor') ? 'none' : 'flex';
 
         const totalPatientsElem = document.getElementById('ov-total-patients');
         const activeDoctorsElem = document.getElementById('ov-active-doctors');
         const consultRevElem = document.getElementById('ov-consult-revenue');
+        const labRevElem = document.getElementById('ov-lab-revenue');
         const pharmacySalesElem = document.getElementById('ov-pharmacy-sales');
         const pendingReqElem = document.getElementById('ov-pending-requests');
         const recentTbody = document.getElementById('ov-recent-tbody');
@@ -1641,14 +1644,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if (totalPatientsElem) totalPatientsElem.textContent = overviewPatients.length;
         if (activeDoctorsElem) activeDoctorsElem.textContent = doctorsCache.length;
 
-        // Calculate Consultation Revenue
+        // Calculate Consultation Revenue & Lab/Diagnostics Revenue Separately
+        const TEST_PRICES = {
+            'X-Ray': 800,
+            'Video X-Ray': 1500,
+            'Blood Test': 600,
+            'Urine Test': 300,
+            'ECG': 600,
+            'EEG': 3000,
+            'CT-Scan': 6500,
+            'MRI': 9500
+        };
+
         let consultTotal = 0;
+        let labTotal = 0;
+
         patientsCache.forEach(p => {
             if (p.appointment?.paymentStatus === 'paid') {
                 consultTotal += parseFloat(p.appointment.charges || 0);
+                if (p.medical?.tests && p.medical.tests.trim() !== '') {
+                    const testItems = p.medical.tests.split(',').map(t => t.trim()).filter(Boolean);
+                    testItems.forEach(tName => {
+                        labTotal += (TEST_PRICES[tName] || 500);
+                    });
+                }
             }
         });
+
         if (consultRevElem) consultRevElem.textContent = `Rs ${consultTotal.toFixed(2)}`;
+        if (labRevElem) labRevElem.textContent = `Rs ${labTotal.toFixed(2)}`;
 
         // Calculate Pharmacy Revenue & Fetch Sales Logs
         try {
