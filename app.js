@@ -2668,6 +2668,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentPharmacyPatientId = null;
 
+    function isMedicineExpired(m) {
+        if (!m || !m.expiry_date) return false;
+        const parts = m.expiry_date.split('-');
+        let expDate = parts.length === 3 ? new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])) : new Date(m.expiry_date);
+        if (!expDate || isNaN(expDate.getTime())) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return expDate < today;
+    }
+
     function updateStockMedicinesDatalist() {
         const datalist = document.getElementById('stock-medicines-datalist');
         if (!datalist) return;
@@ -2679,14 +2689,21 @@ document.addEventListener('DOMContentLoaded', () => {
         datalist.innerHTML = medicinesCache.map(m => {
             const rem = m.remaining_stock !== undefined ? m.remaining_stock : (m.total_stock - (m.sold_qty || 0));
             const price = parseFloat(m.unit_price !== undefined ? m.unit_price : (m.price || 0)).toFixed(2);
+            const expired = isMedicineExpired(m);
+            if (expired) {
+                return `<option value="${escapeHtml(m.name)} (EXPIRED - CANNOT SELL)">🚫 EXPIRED (${m.expiry_date}) | Do Not Dispense</option>`;
+            }
             return `<option value="${escapeHtml(m.name)}">Stock: ${rem} | Rs ${price}</option>`;
         }).join('');
     }
 
     window._onPharmNameInput = function(inputElem) {
         if (!inputElem) return;
-        const val = inputElem.value.trim().toLowerCase();
+        let val = inputElem.value.trim().toLowerCase();
         if (!val) return;
+
+        // Clean out any (EXPIRED...) text if picked from datalist
+        val = val.replace(/\s*\(expired.*?\)/gi, '').trim();
 
         const tr = inputElem.closest('tr');
         if (!tr) return;
@@ -2694,16 +2711,52 @@ document.addEventListener('DOMContentLoaded', () => {
         const matched = medicinesCache.find(m => m.name.trim().toLowerCase() === val) ||
                         medicinesCache.find(m => val.startsWith(m.name.trim().toLowerCase()));
         if (matched) {
+            const isExpired = isMedicineExpired(matched);
             inputElem.value = matched.name;
             const rateInput = tr.querySelector('.pharm-rate') || tr.querySelector('.counter-rate');
-            if (rateInput) {
-                const price = (matched.unit_price !== undefined && matched.unit_price !== null) ? matched.unit_price : (matched.price || 0);
-                rateInput.value = price;
-                if (tr.querySelector('.pharm-rate') && typeof window._updatePharmRowTotal === 'function') {
-                    window._updatePharmRowTotal(rateInput);
-                } else if (tr.querySelector('.counter-rate') && typeof window._updateCounterRowTotal === 'function') {
-                    window._updateCounterRowTotal(rateInput);
+            const qtyInput = tr.querySelector('.pharm-qty') || tr.querySelector('.counter-qty');
+
+            let errDisplay = tr.querySelector('.expired-error-msg');
+            if (!errDisplay) {
+                errDisplay = document.createElement('div');
+                errDisplay.className = 'expired-error-msg';
+                errDisplay.style.cssText = 'color: #dc2626; font-size: 0.75rem; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 3px;';
+                inputElem.parentNode.appendChild(errDisplay);
+            }
+
+            if (isExpired) {
+                errDisplay.innerHTML = `<span class="material-symbols-outlined" style="font-size: 14px;">event_busy</span> EXPIRED (${matched.expiry_date}) - SALE BLOCKED!`;
+                errDisplay.style.display = 'flex';
+                inputElem.style.borderColor = '#dc2626';
+                if (rateInput) {
+                    rateInput.value = 0;
+                    rateInput.disabled = true;
                 }
+                if (qtyInput) {
+                    qtyInput.value = 0;
+                    qtyInput.disabled = true;
+                }
+                tr.classList.add('row-expired-blocked');
+                showToast(`🚫 "${matched.name}" is EXPIRED on ${matched.expiry_date}. Cannot sell or dispense!`, true);
+            } else {
+                errDisplay.style.display = 'none';
+                inputElem.style.borderColor = '';
+                if (rateInput) {
+                    rateInput.disabled = false;
+                    const price = (matched.unit_price !== undefined && matched.unit_price !== null) ? matched.unit_price : (matched.price || 0);
+                    rateInput.value = price;
+                }
+                if (qtyInput) {
+                    qtyInput.disabled = false;
+                    if (parseFloat(qtyInput.value) <= 0) qtyInput.value = 1;
+                }
+                tr.classList.remove('row-expired-blocked');
+            }
+
+            if (tr.querySelector('.pharm-rate') && typeof window._updatePharmRowTotal === 'function') {
+                window._updatePharmRowTotal(rateInput || inputElem);
+            } else if (tr.querySelector('.counter-rate') && typeof window._updateCounterRowTotal === 'function') {
+                window._updateCounterRowTotal(rateInput || inputElem);
             }
         }
     };
@@ -2769,6 +2822,11 @@ document.addEventListener('DOMContentLoaded', () => {
             addPharmacyRow('', 1, 0); 
         }
 
+        // Trigger input checks on all rows so expired medicines are immediately locked
+        tbody.querySelectorAll('.pharm-name').forEach(inp => {
+            if (inp.value) window._onPharmNameInput(inp);
+        });
+
         updatePharmacyGrandTotal();
         document.getElementById('pharmacy-modal').classList.add('active');
     };
@@ -2788,10 +2846,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window._updatePharmRowTotal = function(inputElem) {
         const tr = inputElem.closest('tr');
-        const qty = parseFloat(tr.querySelector('.pharm-qty').value) || 0;
-        const rate = parseFloat(tr.querySelector('.pharm-rate').value) || 0;
+        const qty = parseFloat(tr.querySelector('.pharm-qty')?.value) || 0;
+        const rate = parseFloat(tr.querySelector('.pharm-rate')?.value) || 0;
         const total = qty * rate;
-        tr.querySelector('.row-total-display').textContent = `Rs ${total.toFixed(2)}`;
+        const display = tr.querySelector('.row-total-display');
+        if (display) display.textContent = `Rs ${total.toFixed(2)}`;
         updatePharmacyGrandTotal();
     };
 
@@ -2804,8 +2863,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let total = 0;
         const rows = document.querySelectorAll('#pharmacy-bill-tbody tr');
         rows.forEach(tr => {
-            const qty = parseFloat(tr.querySelector('.pharm-qty').value) || 0;
-            const rate = parseFloat(tr.querySelector('.pharm-rate').value) || 0;
+            const qty = parseFloat(tr.querySelector('.pharm-qty')?.value) || 0;
+            const rate = parseFloat(tr.querySelector('.pharm-rate')?.value) || 0;
             total += (qty * rate);
         });
 
@@ -2833,16 +2892,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const pharmacyBill = [];
         let grandTotal = 0;
+        let hasExpiredMedicine = false;
+        let expiredMedName = '';
+
         document.querySelectorAll('#pharmacy-bill-tbody tr').forEach(tr => {
-            const name = tr.querySelector('.pharm-name').value.trim();
-            const qty = parseFloat(tr.querySelector('.pharm-qty').value) || 0;
-            const rate = parseFloat(tr.querySelector('.pharm-rate').value) || 0;
+            const nameInput = tr.querySelector('.pharm-name');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const qty = parseFloat(tr.querySelector('.pharm-qty')?.value) || 0;
+            const rate = parseFloat(tr.querySelector('.pharm-rate')?.value) || 0;
             const total = qty * rate;
+
             if (name) {
-                pharmacyBill.push({ name, qty, rate, total });
-                grandTotal += total;
+                const matched = medicinesCache.find(m => m.name.toLowerCase().trim() === name.toLowerCase().trim());
+                if (matched && isMedicineExpired(matched)) {
+                    hasExpiredMedicine = true;
+                    expiredMedName = matched.name;
+                }
+                if (qty > 0) {
+                    pharmacyBill.push({ name, qty, rate, total });
+                    grandTotal += total;
+                }
             }
         });
+
+        if (hasExpiredMedicine) {
+            showToast(`🚫 Cannot dispense! "${expiredMedName}" is EXPIRED. Please remove it from the bill.`, true);
+            return;
+        }
+
+        if (pharmacyBill.length === 0) {
+            showToast('Please add at least one valid medicine item with quantity.', true);
+            return;
+        }
 
         try {
             const response = await fetch(`${API_BASE}/pharmacy/dispense/${currentPharmacyPatientId}`, {
@@ -2865,11 +2946,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchMedicines();
                 setTimeout(loadPharmacy, 500);
             } else {
-                showToast('Failed to dispense medicines.');
+                const errData = await response.json().catch(() => ({}));
+                showToast(errData.detail || 'Failed to dispense medicines.', true);
             }
         } catch (error) {
             console.error(error);
-            showToast('Error dispensing medicines.');
+            showToast('Error dispensing medicines.', true);
         }
     });
 
@@ -3303,8 +3385,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const margin = sellingPrice - costPrice;
             const marginPct = costPrice > 0 ? ((margin / costPrice) * 100).toFixed(0) : (sellingPrice > 0 ? '100' : '0');
 
+            const isExpired = isMedicineExpired(m);
             let statusBadge = '<span class="badge-instock"><span class="material-symbols-outlined" style="font-size:14px;">check_circle</span> In Stock</span>';
-            if (rem <= 0) {
+            if (isExpired) {
+                statusBadge = '<span class="badge-outstock" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.35); font-weight: 700;"><span class="material-symbols-outlined" style="font-size:14px;">event_busy</span> Expired (Blocked)</span>';
+            } else if (rem <= 0) {
                 statusBadge = '<span class="badge-outstock"><span class="material-symbols-outlined" style="font-size:14px;">error</span> Out of Stock</span>';
             } else if (rem <= minAlert) {
                 statusBadge = '<span class="badge-lowstock"><span class="material-symbols-outlined" style="font-size:14px;">warning</span> Low Stock</span>';
@@ -3940,6 +4025,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const items = [];
         let grandTotal = 0;
+        let hasExpired = false;
+        let expiredName = '';
         const rows = document.querySelectorAll('#counter-bill-tbody tr');
         rows.forEach(tr => {
             const nameInput = tr.querySelector('.counter-name');
@@ -3949,11 +4036,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const qty = Math.round(parseFloat(qtyInput ? qtyInput.value : 0) || 0);
             const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
             const total = qty * rate;
-            if (name && qty > 0) {
-                items.push({ name, qty, rate, total });
-                grandTotal += total;
+            if (name) {
+                const matched = medicinesCache.find(m => m.name.toLowerCase().trim() === name.toLowerCase().trim());
+                if (matched && isMedicineExpired(matched)) {
+                    hasExpired = true;
+                    expiredName = matched.name;
+                }
+                if (qty > 0) {
+                    items.push({ name, qty, rate, total });
+                    grandTotal += total;
+                }
             }
         });
+
+        if (hasExpired) {
+            window.showToast(`🚫 Cannot sell! "${expiredName}" is EXPIRED. Please remove it from the cart.`, true);
+            return;
+        }
 
         if (items.length === 0) {
             window.showToast('Please add at least one medicine item with valid name and quantity.', true);

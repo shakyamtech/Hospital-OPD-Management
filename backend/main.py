@@ -325,12 +325,19 @@ async def dispense_medicines(patient_id: str, req: DispenseRequest):
             meds_by_id[d.id] = m_dict
 
         # Process each item in prescription/dispense bill
+        import datetime
+        today_str = datetime.date.today().isoformat()
+
         items_dict = []
         for item in req.items:
             it_data = item.model_dump()
             m_name_lower = item.name.strip().lower()
             matched_med = meds_by_name.get(m_name_lower)
             if matched_med:
+                exp_date = matched_med.get("expiry_date")
+                if exp_date and exp_date < today_str:
+                    raise HTTPException(status_code=400, detail=f"Cannot dispense expired medicine: {matched_med.get('name')} (Expired on {exp_date})")
+
                 doc_id = matched_med["_doc_id"]
                 current_rem = matched_med.get("remaining_stock", 0)
                 current_sold = matched_med.get("sold_qty", 0)
@@ -353,7 +360,6 @@ async def dispense_medicines(patient_id: str, req: DispenseRequest):
         patient_ref.set(patient_data)
 
         # Record sales log
-        import datetime
         sale_log = {
             "patient_id": patient_id,
             "patient_name": patient_data.get("personal", {}).get("name", "Unknown"),
@@ -383,6 +389,9 @@ async def dispense_direct_sale(req: DirectDispenseRequest):
             m_dict["_doc_id"] = d.id
             meds_by_name[m_dict.get("name", "").strip().lower()] = m_dict
 
+        import datetime
+        today_str = datetime.date.today().isoformat()
+
         # Process each item
         items_dict = []
         for item in req.items:
@@ -390,6 +399,10 @@ async def dispense_direct_sale(req: DirectDispenseRequest):
             m_name_lower = item.name.strip().lower()
             matched_med = meds_by_name.get(m_name_lower)
             if matched_med:
+                exp_date = matched_med.get("expiry_date")
+                if exp_date and exp_date < today_str:
+                    raise HTTPException(status_code=400, detail=f"Cannot sell expired medicine: {matched_med.get('name')} (Expired on {exp_date})")
+
                 doc_id = matched_med["_doc_id"]
                 current_rem = matched_med.get("remaining_stock", 0)
                 current_sold = matched_med.get("sold_qty", 0)
@@ -406,7 +419,6 @@ async def dispense_direct_sale(req: DirectDispenseRequest):
             items_dict.append(it_data)
 
         # Record sales log
-        import datetime
         cust_name = req.customer_name.strip() if req.customer_name and req.customer_name.strip() else "Walk-in Customer"
         sale_log = {
             "patient_id": "COUNTER-SALE",
