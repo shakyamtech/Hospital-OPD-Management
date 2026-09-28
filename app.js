@@ -1887,11 +1887,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dropdownAvatarText) dropdownAvatarText.textContent = initials;
 
         // Hide/show dropdown menu items based on role permissions
-        if (dropdownPharmacy) {
-            dropdownPharmacy.style.display = (role === 'admin' || role === 'pharmacy') ? 'flex' : 'none';
+        const dropPharmacy = document.getElementById('dropdown-item-pharmacy');
+        const dropSettings = document.getElementById('dropdown-item-settings');
+        if (dropPharmacy) {
+            dropPharmacy.style.display = (role === 'admin' || role === 'pharmacy') ? 'flex' : 'none';
         }
-        if (dropdownSettings) {
-            dropdownSettings.style.display = (role === 'admin') ? 'flex' : 'none';
+        if (dropSettings) {
+            dropSettings.style.display = (role === 'admin') ? 'flex' : 'none';
         }
 
         const userNameEl = document.querySelector('.user-name');
