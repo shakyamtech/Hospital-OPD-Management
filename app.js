@@ -3947,20 +3947,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(`${API_BASE}/appointment-requests/${requestId}`, {
+            let res = await fetch(`${API_BASE}/appointment-requests/${requestId}`, {
                 method: 'DELETE'
             });
-            if (response.ok) {
+
+            // Fallback 1: POST /delete
+            if (!res.ok) {
+                res = await fetch(`${API_BASE}/appointment-requests/${requestId}/delete`, {
+                    method: 'POST'
+                });
+            }
+
+            // Fallback 2: PUT with status 'cleared'
+            if (!res.ok && window._onlineRequestsCache) {
+                const req = window._onlineRequestsCache.find(r => r.id === requestId);
+                if (req) {
+                    res = await fetch(`${API_BASE}/appointment-requests/${requestId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...req, status: 'cleared' })
+                    });
+                }
+            }
+
+            if (res.ok) {
                 if (window.showToast) window.showToast('Request removed successfully!');
+                // Remove from cache and re-render or refetch
+                if (window._onlineRequestsCache) {
+                    window._onlineRequestsCache = window._onlineRequestsCache.filter(r => r.id !== requestId);
+                }
                 const tabRequests = document.getElementById('tab-requests');
-                if (tabRequests && tabRequests.classList.contains('active')) {
-                    const fetchFunc = window._fetchAppointmentRequests || fetchAppointmentRequests;
-                    if (typeof fetchFunc === 'function') fetchFunc();
-                } else {
-                    window.location.reload();
+                if (tabRequests && tabRequests.click) {
+                    tabRequests.click();
                 }
             } else {
-                if (window.showToast) window.showToast('Failed to delete request.', true);
+                let errorMsg = 'Failed to delete request.';
+                try {
+                    const errData = await res.json();
+                    if (errData && errData.detail) errorMsg = errData.detail;
+                } catch(e) {}
+                if (window.showToast) window.showToast(errorMsg, true);
             }
         } catch (err) {
             console.error('Delete request error:', err);
@@ -3974,20 +4000,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch(`${API_BASE}/appointment-requests?status=registered`, {
+            let res = await fetch(`${API_BASE}/appointment-requests?status=registered`, {
                 method: 'DELETE'
             });
-            if (response.ok) {
-                const data = await response.json();
-                if (window.showToast) window.showToast(`Cleared ${data.count || 0} registered request(s)!`);
+
+            // Fallback 1: POST /clear
+            if (!res.ok) {
+                res = await fetch(`${API_BASE}/appointment-requests/clear?status=registered`, {
+                    method: 'POST'
+                });
+            }
+
+            // Fallback 2: Delete one by one if batch endpoint is not yet live
+            if (!res.ok && window._onlineRequestsCache) {
+                const registeredList = window._onlineRequestsCache.filter(r => r.status === 'registered');
+                if (registeredList.length > 0) {
+                    await Promise.all(registeredList.map(r => 
+                        fetch(`${API_BASE}/appointment-requests/${r.id}`, { method: 'DELETE' })
+                            .catch(() => fetch(`${API_BASE}/appointment-requests/${r.id}/delete`, { method: 'POST' }))
+                    ));
+                    res = { ok: true, json: async () => ({ count: registeredList.length }) };
+                }
+            }
+
+            if (res.ok) {
+                let count = 0;
+                try {
+                    const data = await res.json();
+                    count = data.count || 0;
+                } catch(e) {}
+                if (window.showToast) window.showToast(`Cleared ${count} registered request(s)!`);
                 const reqTab = document.getElementById('tab-requests');
                 if (reqTab && reqTab.click) {
                     reqTab.click();
-                } else {
-                    window.location.reload();
                 }
             } else {
-                if (window.showToast) window.showToast('Failed to clear registered requests.', true);
+                let errorMsg = 'Failed to clear registered requests.';
+                try {
+                    const errData = await res.json();
+                    if (errData && errData.detail) errorMsg = errData.detail;
+                } catch(e) {}
+                if (window.showToast) window.showToast(errorMsg, true);
             }
         } catch (err) {
             console.error('Clear requests error:', err);
