@@ -2594,6 +2594,33 @@ body {
     font-size: 1.2rem;
 }
 
+.subtab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    margin-left: 0.35rem;
+    line-height: 1.2;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    animation: badgePulse 2s infinite ease-in-out;
+}
+
+.subtab-btn.active .subtab-badge {
+    background: #ffffff;
+    color: #ef4444;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
 /* Stock Badges */
 .badge-instock {
     background: #dcfce7;
@@ -2819,6 +2846,21 @@ body {
 
 .sidebar-item .material-symbols-outlined {
     font-size: 1.3rem;
+}
+
+.sidebar-badge {
+    margin-left: auto;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    animation: badgePulse 2s infinite ease-in-out;
 }
 
 /* Sidebar Footer & Logout */

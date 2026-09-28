@@ -469,6 +469,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        if (isEditMode) {
+            const existing = (patientsCache || []).find(p => p.id === targetId);
+            if (existing) {
+                if (existing.created_at) patientData.created_at = existing.created_at;
+                if (existing.appointment?.paymentStatus) patientData.appointment.paymentStatus = existing.appointment.paymentStatus;
+                if (existing.appointment?.pharmacyPaymentStatus) patientData.appointment.pharmacyPaymentStatus = existing.appointment.pharmacyPaymentStatus;
+                if (existing.appointment?.pharmacyBill) patientData.appointment.pharmacyBill = existing.appointment.pharmacyBill;
+                if (existing.appointment?.pharmacyDispensedAt) patientData.appointment.pharmacyDispensedAt = existing.appointment.pharmacyDispensedAt;
+                if (existing.appointment?.pharmacyNote) patientData.appointment.pharmacyNote = existing.appointment.pharmacyNote;
+            }
+        }
+
         const submitBtn = patientForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = isEditMode ? 'Updating...' : 'Registering...';
@@ -619,6 +631,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 populateBlockFilter();
                 applyFilters();
                 updateDoctorAlerts();
+                if (typeof updatePharmacyPrescriptionsBadge === 'function') {
+                    updatePharmacyPrescriptionsBadge();
+                }
             } else {
                 directoryTbody.innerHTML = `
                     <tr>
@@ -2703,14 +2718,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Pharmacy Logic ---
+    let prescriptionsDismissed = false;
+    let lastPrescriptionCount = 0;
+
+    function updatePharmacyPrescriptionsBadge() {
+        const sidebarBadge = document.getElementById('sidebar-pharmacy-badge');
+        const subtabBadge = document.getElementById('subtab-prescriptions-badge');
+
+        const pendingPrescriptions = (patientsCache || []).filter(p => {
+            const status = p.appointment?.pharmacyPaymentStatus || 'pending';
+            const hasMeds = p.medical?.medicines && p.medical.medicines.trim() !== '';
+            return status === 'pending' && hasMeds;
+        });
+
+        const count = pendingPrescriptions.length;
+
+        if (count > lastPrescriptionCount) {
+            prescriptionsDismissed = false;
+        }
+        lastPrescriptionCount = count;
+
+        if (sidebarBadge) {
+            if (count > 0) {
+                sidebarBadge.textContent = count > 99 ? '99+' : count;
+                sidebarBadge.style.display = 'inline-block';
+            } else {
+                sidebarBadge.style.display = 'none';
+            }
+        }
+
+        if (subtabBadge) {
+            if (count > 0 && !prescriptionsDismissed) {
+                subtabBadge.textContent = count > 99 ? '99+' : count;
+                subtabBadge.style.display = 'inline-flex';
+            } else {
+                subtabBadge.style.display = 'none';
+            }
+        }
+    }
+
     function loadPharmacy() {
         const tbody = document.getElementById('pharmacy-tbody');
         const searchInput = document.getElementById('pharmacy-search');
+        updatePharmacyPrescriptionsBadge();
         if (!tbody) return;
 
         const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
         
-        let pharmPatients = patientsCache.filter(p => {
+        let pharmPatients = (patientsCache || []).filter(p => {
             const status = p.appointment?.pharmacyPaymentStatus || 'pending';
             return status === 'pending' && p.medical?.medicines && p.medical.medicines.trim() !== '';
         });
@@ -2736,6 +2791,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tbody.innerHTML = pharmPatients.map(p => {
             const name = escapeHtml(p.personal?.name || 'Unknown');
+            const safeName = (p.personal?.name || 'Unknown').replace(/'/g, "\\'");
             const doc = escapeHtml(formatDoctor(p.appointment?.doctor || 'Unknown'));
             const treatment = escapeHtml(p.medical?.description || 'None');
             const meds = escapeHtml(p.medical?.medicines || 'None');
@@ -2748,14 +2804,55 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><span class="badge ${meds === 'None' ? 'badge-grey' : 'badge-primary'}">${meds}</span></td>
                     <td><span class="badge badge-warning">Pending</span></td>
                     <td>
-                        <button class="btn-primary" onclick="window._managePharmacyBill('${p.id}')">
-                            <span class="material-symbols-outlined">receipt_long</span> Create Bill
-                        </button>
+                        <div style="display: inline-flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <button class="btn-primary" onclick="window._managePharmacyBill('${p.id}')" title="Dispense medicines & create bill" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; white-space: nowrap;">
+                                <span class="material-symbols-outlined" style="font-size: 1.05rem;">receipt_long</span> Create Bill
+                            </button>
+                            <button class="btn-secondary" onclick="window._markPrescriptionOutside('${p.id}', '${safeName}')" title="Patient bought medicines outside / Skip from queue" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; white-space: nowrap; border-color: #cbd5e1; color: #64748b;">
+                                <span class="material-symbols-outlined" style="font-size: 1.05rem;">storefront</span> Outside / Skip
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         }).join('');
     }
+
+    window._markPrescriptionOutside = async function(id, name) {
+        if (!confirm(`Mark "${name}" as Outside Purchase (बाहिरबाट किनेको)?\n\nThis will remove them from the pending pharmacy dispensing queue without charging or altering stock.`)) {
+            return;
+        }
+
+        const patient = (patientsCache || []).find(p => p.id === id);
+        if (!patient) return;
+
+        if (!patient.appointment) patient.appointment = {};
+        patient.appointment.pharmacyPaymentStatus = 'outside';
+        patient.appointment.pharmacyDispensedAt = new Date().toISOString();
+        patient.appointment.pharmacyNote = 'Purchased Outside / Skipped';
+
+        try {
+            const response = await fetch(`${API_BASE}/patients/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(patient)
+            });
+
+            if (response.ok) {
+                showToast(`Marked ${name} as Outside Purchase (बाहिरबाट किनेको).`);
+                loadPatients();
+                setTimeout(() => {
+                    loadPharmacy();
+                    updatePharmacyPrescriptionsBadge();
+                }, 300);
+            } else {
+                showToast('Failed to update prescription status.', true);
+            }
+        } catch (error) {
+            console.error('Error updating prescription status:', error);
+            showToast('Error updating prescription status.', true);
+        }
+    };
 
     const pharmacySearch = document.getElementById('pharmacy-search');
     const pharmacyRefresh = document.getElementById('pharmacy-refresh-btn');
@@ -3367,6 +3464,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tabName === 'inventory') {
             fetchMedicines();
         } else if (tabName === 'prescriptions') {
+            prescriptionsDismissed = true;
+            const subtabBadge = document.getElementById('subtab-prescriptions-badge');
+            if (subtabBadge) subtabBadge.style.display = 'none';
             loadPharmacy();
         } else if (tabName === 'sales') {
             fetchSalesLogs();
