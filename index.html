@@ -1571,10 +1571,18 @@
                 
                 <!-- Online Requests Section -->
                 <div id="section-requests" class="tab-section">
-                    <header class="page-header">
+                    <header class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                         <div class="header-titles">
                             <h1>Online Requests</h1>
                             <p>Manage appointment requests from the public website.</p>
+                        </div>
+                        <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn-secondary" id="btn-refresh-requests" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 0.9rem; font-size: 0.88rem; border-radius: 8px; cursor: pointer;">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">refresh</span> Refresh
+                            </button>
+                            <button type="button" class="btn-danger" id="btn-clear-registered-requests" style="display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 0.9rem; font-size: 0.88rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">delete_sweep</span> Clear Registered
+                            </button>
                         </div>
                     </header>
                     <div class="glass-panel table-container" style="margin-top: 1rem;">
@@ -1868,6 +1876,6 @@
     <!-- Printable Invoice Container -->
     <div id="print-section"></div>
 
-    <script src="app.js?v=445"></script>
+    <script src="app.js?v=446"></script>
 </body>
 </html>

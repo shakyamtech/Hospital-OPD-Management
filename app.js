@@ -3840,7 +3840,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('requests-tbody');
         if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading requests...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;"><span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">progress_activity</span> Loading requests...</td></tr>';
         
         try {
             const response = await fetch(`${API_BASE}/appointment-requests`);
@@ -3849,48 +3849,151 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const requests = data.requests || [];
                 if (requests.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No online requests currently.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">No online appointment requests found.</td></tr>';
                     return;
                 }
                 
                 window._onlineRequestsCache = requests;
+                const esc = (typeof window.escapeHtml === 'function') ? window.escapeHtml : (s => s || '');
                 let html = '';
+
                 requests.forEach(r => {
                     // find doctor name to display
-                    let doctorName = r.doctor;
-                    const docObj = doctorsCache.find(d => d.id === r.doctor);
-                    if (docObj) doctorName = docObj.name;
+                    let doctorName = r.doctor || 'General';
+                    const docObj = doctorsCache.find(d => d.id === r.doctor || d.name === r.doctor);
+                    if (docObj) {
+                        doctorName = docObj.name;
+                    } else if (typeof formatDoctor === 'function' && r.doctor) {
+                        doctorName = formatDoctor(r.doctor);
+                    }
+
+                    const isRegistered = r.status === 'registered';
+                    const badgeStyle = isRegistered 
+                        ? 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;'
+                        : 'background: #fef3c7; color: #92400e; border: 1px solid #fde68a;';
+                    const badgeIcon = isRegistered ? 'check_circle' : 'hourglass_top';
+                    const statusText = r.status ? (r.status.charAt(0).toUpperCase() + r.status.slice(1)) : 'Pending';
+
+                    let actionHtml = '';
+                    if (isRegistered) {
+                        actionHtml = `
+                            <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" onclick="window.deleteAppointmentRequest('${r.id}', '${esc(r.name)}')">
+                                <span class="material-symbols-outlined" style="font-size: 15px;">delete</span> Clear
+                            </button>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <div style="display: inline-flex; gap: 6px; align-items: center;">
+                                <button class="btn-primary" style="padding: 5px 10px; font-size: 0.82rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" onclick="window.registerFromRequest('${r.id}')">
+                                    <span class="material-symbols-outlined" style="font-size: 15px;">person_add</span> Register
+                                </button>
+                                <button class="btn-secondary" style="padding: 5px 8px; font-size: 0.82rem; background: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;" title="Dismiss request" onclick="window.deleteAppointmentRequest('${r.id}', '${esc(r.name)}')">
+                                    <span class="material-symbols-outlined" style="font-size: 15px;">close</span>
+                                </button>
+                            </div>
+                        `;
+                    }
 
                     html += `
                         <tr>
-                            <td><strong>${r.name}</strong></td>
-                            <td>${r.phone}</td>
-                            <td>${r.date}</td>
-                            <td>${doctorName}</td>
+                            <td><strong>${esc(r.name)}</strong></td>
+                            <td>${esc(r.phone)}</td>
+                            <td>${esc(r.date)}</td>
+                            <td>${esc(doctorName)}</td>
                             <td>
-                                <span class="status-badge status-${r.status}" style="background: var(--warning); color: #856404; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">
-                                    ${r.status}
+                                <span class="status-badge" style="${badgeStyle} padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">${badgeIcon}</span>
+                                    ${statusText}
                                 </span>
                             </td>
                             <td>
-                                ${r.status !== 'registered' ? `<button class="btn-primary" style="padding: 4px 8px; font-size: 0.85rem;" onclick="window.registerFromRequest('${r.id}')"><span class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">person_add</span>Register</button>` : ''}
+                                ${actionHtml}
                             </td>
                         </tr>
                     `;
                 });
                 tbody.innerHTML = html;
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Failed to load requests.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444; padding: 1.5rem;">Failed to load requests.</td></tr>';
             }
         } catch (error) {
             console.error('Error fetching requests:', error);
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Connection error.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444; padding: 1.5rem;">Connection error.</td></tr>';
         }
+    }
+
+    // Online Requests Action Buttons in Page Header
+    const btnRefreshReqs = document.getElementById('btn-refresh-requests');
+    if (btnRefreshReqs) {
+        btnRefreshReqs.addEventListener('click', () => {
+            fetchAppointmentRequests();
+        });
+    }
+
+    const btnClearRegisteredReqs = document.getElementById('btn-clear-registered-requests');
+    if (btnClearRegisteredReqs) {
+        btnClearRegisteredReqs.addEventListener('click', () => {
+            if (typeof window.clearCompletedAppointmentRequests === 'function') {
+                window.clearCompletedAppointmentRequests();
+            }
+        });
     }
 
 });
 
+    window.deleteAppointmentRequest = async function(requestId, patientName = 'this request') {
+        if (!confirm(`Are you sure you want to remove the appointment request for ${patientName}?`)) {
+            return;
+        }
 
+        try {
+            const response = await fetch(`${API_BASE}/appointment-requests/${requestId}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                if (window.showToast) window.showToast('Request removed successfully!');
+                const tabRequests = document.getElementById('tab-requests');
+                if (tabRequests && tabRequests.classList.contains('active')) {
+                    const fetchFunc = window._fetchAppointmentRequests || fetchAppointmentRequests;
+                    if (typeof fetchFunc === 'function') fetchFunc();
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                if (window.showToast) window.showToast('Failed to delete request.', true);
+            }
+        } catch (err) {
+            console.error('Delete request error:', err);
+            if (window.showToast) window.showToast('Network error while deleting request.', true);
+        }
+    };
+
+    window.clearCompletedAppointmentRequests = async function() {
+        if (!confirm('Are you sure you want to clear all registered online appointment requests?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/appointment-requests?status=registered`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (window.showToast) window.showToast(`Cleared ${data.count || 0} registered request(s)!`);
+                const reqTab = document.getElementById('tab-requests');
+                if (reqTab && reqTab.click) {
+                    reqTab.click();
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                if (window.showToast) window.showToast('Failed to clear registered requests.', true);
+            }
+        } catch (err) {
+            console.error('Clear requests error:', err);
+            if (window.showToast) window.showToast('Network error while clearing requests.', true);
+        }
+    };
 
     window.registerFromRequest = function(requestId) {
         if (!window._onlineRequestsCache) return;
@@ -3919,7 +4022,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (contactInput) contactInput.value = request.phone;
             
             if (doctorSelect && request.doctor) {
-                // The request.doctor might be ID or Name
                 for (let i = 0; i < doctorSelect.options.length; i++) {
                     if (doctorSelect.options[i].value === request.doctor || 
                         doctorSelect.options[i].text.includes(request.doctor)) {
@@ -3929,8 +4031,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Optional: Store the request ID somewhere so when registration is done, we update the status
-            // For now, let's add a hidden field or a global variable
             window._currentProcessingRequestId = requestId;
         }, 100);
     };

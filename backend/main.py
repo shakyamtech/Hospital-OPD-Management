@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -238,6 +239,45 @@ async def update_appointment_request(request_id: str, request: AppointmentReques
         return {"message": "Appointment request updated successfully", "id": request_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update request: {str(e)}")
+
+@app.delete("/api/appointment-requests/{request_id}")
+async def delete_appointment_request(request_id: str):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        doc_ref = db.collection("appointment_requests").document(request_id)
+        if not doc_ref.get().exists:
+            raise HTTPException(status_code=404, detail="Request not found.")
+        doc_ref.delete()
+        return {"message": "Appointment request deleted successfully", "id": request_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete request: {str(e)}")
+
+@app.delete("/api/appointment-requests")
+async def clear_appointment_requests(status: Optional[str] = None):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured.")
+    try:
+        reqs_ref = db.collection("appointment_requests")
+        if status and status != "all":
+            docs = reqs_ref.where("status", "==", status).stream()
+        else:
+            docs = reqs_ref.stream()
+        deleted_count = 0
+        batch = db.batch()
+        for doc in docs:
+            batch.delete(doc.reference)
+            deleted_count += 1
+            if deleted_count % 400 == 0:
+                batch.commit()
+                batch = db.batch()
+        if deleted_count % 400 != 0 or deleted_count == 0:
+            batch.commit()
+        return {"message": f"Cleared {deleted_count} appointment requests", "count": deleted_count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear requests: {str(e)}")
 
 # ================= PHARMACY INVENTORY & SALES ENDPOINTS =================
 
