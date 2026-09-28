@@ -75,4 +75,5 @@ class DirectDispenseRequest(BaseModel):
     contact: Optional[str] = ""
     items: List[MedicineItem]
     grand_total: float
+    payment_mode: Optional[str] = "Cash"
 

@@ -4095,12 +4095,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const esc = (typeof window.escapeHtml === 'function') ? window.escapeHtml : (s => s || '');
         const safeName = esc(name || '');
         const tr = document.createElement('tr');
+        tr.className = 'pos-item-row';
         tr.innerHTML = `
-            <td><input type="text" class="medicine-row-input counter-name" list="stock-medicines-datalist" value="${safeName}" placeholder="Medicine Name (Type to search stock...)" oninput="window._onPharmNameInput(this)" onchange="window._onPharmNameInput(this)"></td>
-            <td><input type="number" class="medicine-row-input counter-qty" value="${qty}" min="1" oninput="window._updateCounterRowTotal(this)"></td>
-            <td><input type="number" class="medicine-row-input counter-rate" value="${rate}" min="0" step="0.01" oninput="window._updateCounterRowTotal(this)"></td>
-            <td class="counter-row-total-display">Rs ${(qty * rate).toFixed(2)}</td>
-            <td><button type="button" class="btn-delete-row" onclick="window._deleteCounterRow(this)"><span class="material-symbols-outlined">delete</span></button></td>
+            <td>
+                <div class="pos-row-input-wrap">
+                    <span class="material-symbols-outlined pos-row-search-icon">search</span>
+                    <input type="text" class="pos-table-input counter-name" list="stock-medicines-datalist" value="${safeName}" placeholder="Search medicine stock..." oninput="window._onPharmNameInput(this)" onchange="window._onPharmNameInput(this)">
+                </div>
+            </td>
+            <td style="text-align: center;">
+                <input type="number" class="pos-table-input counter-qty" value="${qty}" min="1" oninput="window._updateCounterRowTotal(this)" style="text-align: center; max-width: 90px; margin: 0 auto;">
+            </td>
+            <td style="text-align: right;">
+                <div class="pos-rate-wrap">
+                    <span class="pos-currency-prefix">Rs</span>
+                    <input type="number" class="pos-table-input counter-rate" value="${rate}" min="0" step="0.01" oninput="window._updateCounterRowTotal(this)" style="text-align: right; max-width: 100px;">
+                </div>
+            </td>
+            <td style="text-align: right;">
+                <span class="pos-row-total counter-row-total-display">Rs ${(qty * rate).toFixed(2)}</span>
+            </td>
+            <td style="text-align: center;">
+                <button type="button" class="pos-btn-delete-row" title="Remove item" onclick="window._deleteCounterRow(this)">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            </td>
         `;
         tbody.appendChild(tr);
         if (typeof updateCounterGrandTotal === 'function') {
@@ -4110,6 +4129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window._addCounterRow = function(name = '', qty = 1, rate = 0) {
         addCounterRow(name, qty, rate);
+        updateCounterGrandTotal();
     };
 
     function initCounterSaleForm() {
@@ -4150,11 +4170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (totalElem) totalElem.textContent = `Rs ${total.toFixed(2)}`;
     }
 
-    window._addCounterRow = function(name = '', qty = 1, rate = 0) {
-        addCounterRow(name, qty, rate);
-        updateCounterGrandTotal();
-    };
-
     window._resetCounterForm = function() {
         if (confirm('Reset the counter sale form?')) {
             const custNameInput = document.getElementById('counter-customer-name');
@@ -4168,7 +4183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function printPharmacyReceipt(customerName, contact, items, grandTotal) {
+    function printPharmacyReceipt(customerName, contact, items, grandTotal, paymentMode = 'Cash') {
         const safeName = customerName || 'Walk-in Customer';
         const dateStr = new Date().toLocaleString();
         const dateShort = new Date().toISOString().slice(0,10);
@@ -4176,10 +4191,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let itemsHtml = items.map(item => `
             <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(item.name)}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.qty}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">Rs ${(parseFloat(item.rate) || 0).toFixed(2)}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">Rs ${(parseFloat(item.total) || 0).toFixed(2)}</td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-weight: 500;">${escapeHtml(item.name)}</td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: center;">${item.qty}</td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: right;">Rs ${(parseFloat(item.rate) || 0).toFixed(2)}</td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: right; font-weight: 700;">Rs ${(parseFloat(item.total) || 0).toFixed(2)}</td>
             </tr>
         `).join('');
 
@@ -4188,35 +4203,38 @@ document.addEventListener('DOMContentLoaded', () => {
 <head>
     <title>${escapeHtml(fileName)}</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
-        .receipt-card { max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .header { text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px; }
-        .header h2 { margin: 0; color: #0284c7; font-size: 24px; }
-        .header p { margin: 4px 0 0 0; color: #64748b; font-size: 14px; }
-        .info-grid { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: #475569; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { background: #f8fafc; padding: 10px; text-align: left; font-size: 13px; text-transform: uppercase; color: #475569; border-bottom: 2px solid #cbd5e1; }
-        .total-box { text-align: right; font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 15px; border-top: 2px solid #0284c7; padding-top: 10px; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 15px; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; color: #0f172a; background: #ffffff; }
+        .receipt-card { max-width: 580px; margin: 0 auto; border: 1.5px solid #0d9488; padding: 28px; border-radius: 12px; }
+        .header { text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 16px; margin-bottom: 18px; }
+        .header h2 { margin: 0; color: #0d9488; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { margin: 4px 0 0 0; color: #64748b; font-size: 13px; font-weight: 500; }
+        .info-grid { display: flex; justify-content: space-between; margin-bottom: 18px; font-size: 13px; color: #334155; line-height: 1.5; background: #f8fafc; padding: 12px 14px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+        th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; border-bottom: 2px solid #cbd5e1; }
+        .total-box { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 15px; border-top: 2px solid #0d9488; padding-top: 14px; }
+        .total-amount { color: #0d9488; }
+        .footer { text-align: center; margin-top: 25px; font-size: 11px; color: #94a3b8; border-top: 1px dashed #e2e8f0; padding-top: 14px; }
         @media print {
             body { padding: 0; }
-            .receipt-card { border: none; box-shadow: none; }
+            .receipt-card { border: none; box-shadow: none; padding: 0; }
         }
     </style>
 </head>
 <body>
     <div class="receipt-card">
         <div class="header">
-            <h2>Hospital OPD Pharmacy</h2>
-            <p>Direct Counter Sale Receipt</p>
+            <h2>HOSPITAL OPD PHARMACY</h2>
+            <p>Direct POS Counter Sale Invoice</p>
         </div>
         <div class="info-grid">
             <div>
                 <strong>Customer:</strong> ${escapeHtml(safeName)}<br>
-                ${contact ? `<strong>Contact:</strong> ${escapeHtml(contact)}` : ''}
+                ${contact ? `<strong>Contact:</strong> ${escapeHtml(contact)}<br>` : ''}
+                <strong>Payment Mode:</strong> ${escapeHtml(paymentMode)}
             </div>
             <div style="text-align: right;">
-                <strong>Date & Time:</strong> ${dateStr}
+                <strong>Date:</strong> ${dateShort}<br>
+                <strong>Time:</strong> ${new Date().toLocaleTimeString()}
             </div>
         </div>
         <table>
@@ -4233,11 +4251,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </tbody>
         </table>
         <div class="total-box">
-            Grand Total: Rs ${(parseFloat(grandTotal) || 0).toFixed(2)}
+            <span>Payable Grand Total:</span>
+            <span class="total-amount">Rs ${(parseFloat(grandTotal) || 0).toFixed(2)}</span>
         </div>
         <div class="footer">
-            <p>Thank you for visiting! Wish you good health.</p>
-            <p style="margin-top: 5px;">This is a computer generated receipt.</p>
+            <p>Thank you for choosing our pharmacy! Wish you a speedy recovery.</p>
+            <p style="margin-top: 4px;">*** Computer Generated Tax Invoice ***</p>
         </div>
     </div>
 </body>
@@ -4271,6 +4290,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const custContactInput = document.getElementById('counter-customer-contact');
         const customerName = (custNameInput && custNameInput.value.trim()) ? custNameInput.value.trim() : 'Walk-in Customer';
         const contact = (custContactInput && custContactInput.value.trim()) ? custContactInput.value.trim() : '';
+        const paymentModeInput = document.getElementById('counter-payment-mode');
+        const paymentMode = paymentModeInput ? paymentModeInput.value : 'Cash';
 
         const items = [];
         let grandTotal = 0;
@@ -4323,7 +4344,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     customer_name: customerName,
                     contact: contact,
                     items: items,
-                    grand_total: grandTotal
+                    grand_total: grandTotal,
+                    payment_mode: paymentMode
                 })
             });
 
@@ -4331,7 +4353,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.showToast('Direct sale completed & stock updated!');
                 
                 try {
-                    printPharmacyReceipt(customerName, contact, items, grandTotal);
+                    printPharmacyReceipt(customerName, contact, items, grandTotal, paymentMode);
                 } catch (e) {
                     console.error('Printing receipt failed:', e);
                 }
